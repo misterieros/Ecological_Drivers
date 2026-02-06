@@ -1,0 +1,1153 @@
+---
+title: "Análisis Espaciotemporal de la Diversidad de Algas y Variabilidad Ambiental en el Archipiélago Canario (1993–2023)"
+author: "Eros Fernando Geppi"
+date: "`r Sys.Date()`"
+output: pdf_document
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+# Lectura y manipulación de datos
+library(readxl)       # Lectura de archivos Excel
+library(ncdf4)        # Lectura de archivos NetCDF
+library(data.table)   # Manipulación eficiente de grandes volúmenes de datos
+library(tidyverse)    # Incluye dplyr, tidyr, ggplot2, readr, purrr, etc.
+
+# Visualización y gráficos avanzados
+library(gganimate)    # Animación de gráficos ggplot2
+library(patchwork)    # Composición de múltiples gráficos ggplot2
+library(GGally)       # Pares de variables y correlaciones visuales
+library(gratia)       # Visualización de modelos GAM (especial para mgcv)
+
+# Análisis espacial y raster
+library(raster)       # Análisis de datos raster
+library(sf)           # Datos espaciales vectoriales
+library(FNN)          # Vecinos más cercanos (KNN)
+
+# Ecología y diversidad
+library(vegan)        # Diversidad, ordenación, disimilitud
+library(adespatial)   # Beta diversidad y análisis espaciales ecológicos
+
+# Modelado y estadística
+library(mgcv)         # Modelos aditivos generalizados
+library(MASS)         # Incluye stepAIC, modelos lineales y multivariados
+library(broom)        # Convierte modelos a data frames tidy
+library(stats)        # Incluye prcomp() y funciones estadísticas base
+
+# Manejo de fechas
+library(lubridate)    # Fechas y tiempos
+
+# Informes y documentación
+library(knitr)        # Formato y salida de resultados (RMarkdown, HTML, PDF)
+```
+
+
+# 1. Introducción
+## 1.1. Contexto y Justificación
+## 1.2. Objetivos
+Caracterizar la diversidad de macroalgas (alfa, beta, gamma) por isla y gradientes espaciales.
+
+Relacionar la diversidad con variables ambientales satelitales (físicas y biogeoquímicas) a distintas escalas temporales y espaciales.
+
+Analizar la variabilidad, estacionalidad y tendencias a lo largo de 30 años (1993–2024).
+
+# 2. Definiciones Conceptuales
+
+* Diversidad Alfa: riqueza y equitatividad de especies a nivel local (por muestra o isla).
+
+* Diversidad Beta: recambio de especies entre sitios (islas, localidades) o a lo largo de gradientes.
+
+* Diversidad Gamma: diversidad total regional (archipiélago completo).
+
+* Variables ambientales: SST, SSS, SWH, SSR, NO3, PO4, etc.
+
+* Gradientes espaciales: Este-Oeste, latitudinal y longitudinal.
+
+* Variabilidad temporal: anual, decadal, mensual, estacional.
+
+
+# 3. Carga y Procesamiento de Datos
+
+
+```{r, include=FALSE}
+# 1. Lectura de datos de registros de especies desde Excel
+registros <- readxl::read_excel("D:/Investigación/Macroalgas/Registros_Biota.xlsx", sheet = "Data")
+
+# 2. Abrir archivos NetCDF físico y biogeoquímico
+nc_phy <- ncdf4::nc_open("D:/Investigación/Macroalgas/cmems_mod_ibi_phy_my_0.083deg-3D_P1M-m_1752765447532.nc")
+nc_bgc <- ncdf4::nc_open("D:/Investigación/Macroalgas/cmems_mod_ibi_bgc_my_0.083deg-3D_P1M-m_1752765626313.nc")
+
+# 3. Función para extraer variables NetCDF de cualquier dimensión superficial
+extract_nc_var_surface <- function(nc, var_name) {
+  var <- ncdf4::ncvar_get(nc, var_name)
+  var_dim <- dim(var)
+  lon <- ncdf4::ncvar_get(nc, "longitude")
+  lat <- ncdf4::ncvar_get(nc, "latitude")
+  time <- tryCatch(ncdf4::ncvar_get(nc, "time"), error=function(e) NULL)
+  time_units <- tryCatch(ncdf4::ncatt_get(nc, "time", "units")$value, error=function(e) NULL)
+  depth <- tryCatch(ncdf4::ncvar_get(nc, "depth"), error=function(e) NULL)
+  origin <- if (!is.null(time_units)) sub("seconds since ", "", time_units) else "1970-01-01"
+  dates <- if (!is.null(time) && !is.null(origin)) as.Date(as.POSIXct(time, origin = origin, tz = "UTC")) else NA
+
+  # 4D: [lon, lat, depth, time]
+  if (length(var_dim) == 4) {
+    var_surface <- var[,,1,]
+    grid <- expand.grid(lon = lon, lat = lat, date = dates)
+    grid$value <- as.vector(var_surface)
+    grid$depth <- if (!is.null(depth)) depth[1] else NA
+    grid$varname <- var_name
+    return(grid)
+  }
+  # 3D: [lon, lat, time]
+  if (length(var_dim) == 3) {
+    grid <- expand.grid(lon = lon, lat = lat, date = dates)
+    grid$value <- as.vector(var)
+    grid$depth <- NA
+    grid$varname <- var_name
+    return(grid)
+  }
+  # 2D: [lon, lat]
+  if (length(var_dim) == 2) {
+    grid <- expand.grid(lon = lon, lat = lat)
+    grid$value <- as.vector(var)
+    grid$date <- NA
+    grid$depth <- NA
+    grid$varname <- var_name
+    return(grid)
+  }
+  stop(paste("Variable con dimensión inesperada:", var_name))
+}
+
+# 4. Lista de variables físicas y biogeoquímicas disponibles
+vars_phy <- names(nc_phy$var)
+vars_bgc <- names(nc_bgc$var)
+
+# 5. Extrae todas las variables físicas superficiales
+env_phy_list <- lapply(vars_phy, function(var) {
+  message("Extrayendo variable física: ", var)
+  extract_nc_var_surface(nc_phy, var)
+})
+names(env_phy_list) <- vars_phy
+
+# 6. Extrae todas las variables biogeoquímicas superficiales
+env_bgc_list <- lapply(vars_bgc, function(var) {
+  message("Extrayendo variable biogeoquímica: ", var)
+  extract_nc_var_surface(nc_bgc, var)
+})
+names(env_bgc_list) <- vars_bgc
+
+# 7. Cierra conexiones NetCDF
+ncdf4::nc_close(nc_phy)
+ncdf4::nc_close(nc_bgc)
+
+# 8.Acceder a cada variable por separado, ejemplo:
+env_phy_list$thetao  # Temperatura
+env_phy_list$so      # Salinidad
+env_bgc_list$no3     # Nitrato
+env_bgc_list$po4     # Fosfato
+# etc.
+
+# 9. Unir todo en un único data.frame largo:
+env_phy <- dplyr::bind_rows(env_phy_list)
+env_bgc <- dplyr::bind_rows(env_bgc_list)
+
+# Limpiar valores para que 'value' sea numérico simple (promedio por lon, lat, date)
+# Convierte a data.table (evita copiar si ya es data.table)
+setDT(env_phy)
+setDT(env_bgc)
+
+# Procesa env_phy con data.table
+env_phy_clean <- env_phy[, .(value = mean(value, na.rm = TRUE)),
+                        by = .(lon, lat, date, depth, varname)]
+env_phy_clean <- dcast(env_phy_clean, lon + lat + date + depth ~ varname, value.var = "value")
+
+# Procesa env_bgc con data.table
+env_bgc_clean <- env_bgc[, .(value = mean(value, na.rm = TRUE)),
+                        by = .(lon, lat, date, depth, varname)]
+env_bgc_clean <- dcast(env_bgc_clean, lon + lat + date + depth ~ varname, value.var = "value")
+# Unir todo
+env_all <- bind_rows(env_phy_clean, env_bgc_clean) %>%
+  arrange(lon, lat, date)
+
+```
+
+
+## 3.1. Integración de datos ambientales y biológicos
+
+```{r}
+registros <- as_tibble(registros)
+df_sst <- as_tibble(env_phy_list$thetao)
+
+dec <- 0.08333
+
+round_coord <- function(x, dec) round(x / dec) * dec
+
+registros <- registros %>%
+  mutate(
+    Year = as.integer(Year),
+    Mes = ifelse("Mes" %in% colnames(.), Mes, 6),
+    Fecha = as.Date(paste(Year, Mes, 15, sep = "-")),
+    lon_grid = round_coord(Lon, dec),
+    lat_grid = round_coord(Lat, dec),
+    date_grid = floor_date(Fecha, "month")
+  )
+
+df_sst <- df_sst %>%
+  mutate(
+    lon_grid = round_coord(lon, dec),
+    lat_grid = round_coord(lat, dec),
+    date_grid = floor_date(date, "month")
+  )
+
+registros <- dplyr::left_join(
+  registros,
+  dplyr::select(df_sst, lon_grid, lat_grid, date_grid, value),
+  by = c("lon_grid", "lat_grid", "date_grid")
+) %>%
+  rename(SST = value) %>%
+  dplyr::select(-lon_grid, -lat_grid, -date_grid)
+
+registros_canarias <- registros %>%
+  filter(Lat >= 27.5, Lat <= 29.6, Lon >= -18.25, Lon <= -13.33)
+cat("Nº de registros dentro de Canarias:", nrow(registros_canarias), "\n")
+
+```
+
+# 4. Cálculo de Índices de Diversidad
+
+```{r}
+# 1. Diversidad alfa por isla y año (riqueza y Shannon)
+alfa <- registros %>%
+  group_by(Isla, Year) %>%
+  summarise(
+    Riqueza = n_distinct(Specie),  # Número de especies distintas (riqueza)
+    Shannon = vegan::diversity(table(Specie)), # Índice de Shannon
+    .groups = "drop"
+  )
+
+# 2. Diversidad gamma (riqueza total del archipiélago por año)
+gamma <- registros %>%
+  group_by(Year) %>%
+  summarise(
+    Riqueza_total = n_distinct(Specie),
+    .groups = "drop"
+  )
+
+# 3. Diversidad beta: recambio de especies entre islas (matriz de presencia/ausencia)
+# Para un año concreto:
+año_beta <- max(registros$Year, na.rm = TRUE)
+reg_yr <- registros %>% filter(Year == año_beta)
+
+pa_mat <- reg_yr %>%
+  mutate(pres = 1) %>%
+  distinct(Isla, Specie, pres) %>%
+  pivot_wider(names_from = Specie, values_from = pres, values_fill = 0) %>%
+  as.data.frame()
+
+# Fija las filas con los nombres de islas y quita columna 'Isla'
+rownames(pa_mat) <- pa_mat$Isla
+pa_mat$Isla <- NULL
+
+# Calcula disimilitud de Jaccard (beta) entre islas
+beta_jaccard <- vegan::vegdist(pa_mat, method = "jaccard")
+# beta_list es una lista con la matriz de disimilitud para cada año
+beta_list <- lapply(split(registros, registros$Year), function(reg_yr) {
+  pa <- reg_yr %>%
+    mutate(pres = 1) %>%
+    distinct(Isla, Specie, pres) %>%
+    pivot_wider(names_from = Specie, values_from = pres, values_fill = 0) %>%
+    as.data.frame()
+  rownames(pa) <- pa$Isla; pa$Isla <- NULL
+  vegan::vegdist(pa, method = "jaccard")
+})
+
+```
+
+# 5. Análisis Espacial y Gradientes
+## 5.1. Mapa de riqueza y gradientes (Este-Oeste, latitud, longitud)
+
+```{r}
+# Mapa base de Canarias
+canarias_bbox <- st_as_sf(data.frame(
+  lon = c(-18.3, -13.3), lat = c(27.4, 29.7)
+), coords = c("lon", "lat"), crs=4326)
+
+# Riqueza alfa promedio por Isla
+alfa_media <- alfa %>% group_by(Isla) %>% summarise(Riqueza_media = mean(Riqueza))
+
+ggplot(alfa_media) +
+  geom_col(aes(x=reorder(Isla, Riqueza_media), y=Riqueza_media, fill=Isla)) +
+  coord_flip() +
+  labs(title="", x="Island", y="Richness")
+
+```
+
+## 5.2. Gradientes latitudinales y longitudinales
+
+```{r}
+# Riqueza promedio por latitud/longitud (agregando por bandas)
+lat_breaks <- seq(floor(min(registros$Lat)), ceiling(max(registros$Lat)), by = 0.25)
+
+registros %>%
+  mutate(lat_band = cut(Lat, breaks = lat_breaks, include.lowest = TRUE, right = FALSE)) %>%
+  group_by(lat_band) %>%
+  summarise(Riqueza = n_distinct(Specie)) %>%
+  ggplot(aes(x = lat_band, y = Riqueza)) +
+  geom_col(fill = "steelblue") + coord_flip() +
+  labs(title = "", x = "Latitude", y = "Richness")
+```
+```{r}
+# Crea breaks automáticos según tus datos reales de longitud
+lon_breaks <- seq(floor(min(registros$Lon)), ceiling(max(registros$Lon)), by = 0.25)
+
+registros %>%
+  mutate(lon_band = cut(Lon, breaks = lon_breaks, include.lowest = TRUE, right = FALSE)) %>%
+  group_by(lon_band) %>%
+  summarise(Riqueza = n_distinct(Specie)) %>%
+  ggplot(aes(y = lon_band, x = Riqueza)) +
+  geom_col(fill = "coral") + coord_flip() +
+  labs(title = "", y = "Longitude", x = "Richness") +
+  theme(axis.text.x = element_text(angle = 45))
+
+```
+
+# 6. Análisis Temporal: Décadas, años, estacionalidad, variabilidad mensual
+## 6.1. Tendencias de diversidad por década y año
+
+```{r}
+# Añadir columna de década
+registros <- registros %>%
+  mutate(Decada = paste0(floor(Year/10)*10, "s"))
+
+alfa_decada <- registros %>%
+  group_by(Isla, Decada) %>%
+  summarise(Riqueza = n_distinct(Specie))
+
+ggplot(alfa_decada, aes(x=Decada, y=Riqueza, color=Isla, group=Isla)) +
+  geom_line() + geom_point() +
+  labs(title="", x="Decade", y="Richness", color= "Island", group = "Island")
+
+```
+
+## 6.2. Análisis estacional y variabilidad mensual (ambientales y biológicos)
+
+```{r}
+# Calcula la década a la que pertenece cada año
+env_all_long <- env_all %>%
+  filter(!is.na(date)) %>%
+  pivot_longer(cols = -c(lon, lat, date, depth),
+               names_to = "variable",
+               values_to = "value")
+
+env_all_decada <- env_all_long %>%
+  mutate(
+    Mes = factor(format(date, "%B"), 
+                 levels = c("enero", "febrero", "marzo", "abril", "mayo",
+                  "junio", "julio", "agosto", "septiembre",
+                  "octubre", "noviembre", "diciembre"),
+                 labels = c("Jan", "Feb", "Mar", "Apr", "May",
+                            "Jun", "Jul", "Aug", "Sep",
+                            "Oct", "Nov", "Dic")),
+    Decada = paste0(floor(year(date) / 10) * 10, "s")
+  ) %>%
+  group_by(variable, Decada, Mes) %>%
+  summarise(media = mean(value, na.rm = TRUE), .groups = "drop")
+# Gráfico: una línea por década, un panel por variable
+ggplot(env_all_decada, aes(x = Mes, y = media, group = Decada, color = Decada)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~ variable, scales = "free_y") +  # Cambiado varname a variable
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "",
+    x = "Month", y = "Mean value",
+    color = "Decade",
+    caption = ""
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 0.5, size = 11),
+    strip.text = element_text(face = "bold", size = 13),
+    plot.caption = element_text(face = "italic", hjust = 0),
+    legend.position = "bottom"
+  )
+```
+
+# 7. Animaciones temporales
+
+```{r}
+# Supón que 'alfa' tiene columnas: Isla, Year, Riqueza, Shannon
+
+# 1. Datos acumulados por año (para cada isla y en total)
+alfa_long <- alfa %>%
+  pivot_longer(cols = c(Riqueza, Shannon), names_to = "Indice", values_to = "Valor") %>%
+  # Acumula años: cada "frame" contiene datos hasta ese año
+  group_by(Indice, Isla) %>%
+  arrange(Year) %>%
+  mutate(frame_id = Year) %>%
+  ungroup()
+
+# 2. Añade una categoría "Total" (todas las islas combinadas) para comparar con islas individuales
+alfa_total <- alfa_long %>%
+  group_by(Indice, Year, frame_id) %>%
+  summarise(Valor = mean(Valor, na.rm = TRUE), Isla = "Total", .groups = "drop")
+
+# 3. Junta islas individuales y total
+alfa_anim <- bind_rows(alfa_long, alfa_total)
+
+# 4. Animación de boxplot acumulativo
+#p <- ggplot(alfa_anim %>% filter(Year <= frame_id), 
+#            aes(x = Isla, y = Valor, fill = Isla)) +
+#  geom_boxplot(outlier.shape = NA, alpha = 0.7) +
+#  facet_wrap(~ Indice, scales = "free_y") +
+#  labs(
+#    title = 'Diversidad por isla hasta el año: {closest_state}',
+#    y = "Índices de diversidad", x = "Isla / Total"
+#  ) +
+#  theme_minimal(base_size = 15) +
+#  theme(legend.position = "none",
+#        axis.text.x = element_text(angle = 45)) +
+#  transition_states(frame_id, transition_length = 1, state_length = 1) +
+#  ease_aes("linear")
+
+# 5. Ejecuta la animación
+#animate(p, nframes = length(unique(alfa_anim$Year)), fps = 4, width = 800, height = 500)
+```
+
+
+# 8. Relación entre diversidad y variables ambientales
+
+```{r}
+# 1. Une todas las variables ambientales
+env_all <- dplyr::bind_rows(env_phy, env_bgc) %>%
+  dplyr::filter(!is.na(date)) %>%
+  dplyr::select(lon, lat, date, value, varname)
+
+# 2. Tabla ancha de celdas ambientales
+amb_coords <- env_all %>%
+  tidyr::pivot_wider(id_cols = c(lon, lat, date), names_from = varname, values_from = value) %>%
+  dplyr::arrange(lon, lat, date)
+
+# 3. Define el rango de la malla
+lat_min <- min(amb_coords$lat, na.rm = TRUE)
+lat_max <- max(amb_coords$lat, na.rm = TRUE)
+lon_min <- min(amb_coords$lon, na.rm = TRUE)
+lon_max <- max(amb_coords$lon, na.rm = TRUE)
+
+# 4. Filtra registros dentro de la malla ambiental y redondea a la grilla
+dec <- 0.08333
+registros_proj <- registros %>%
+  dplyr::filter(Lat >= lat_min, Lat <= lat_max, Lon >= lon_min, Lon <= lon_max) %>%
+  dplyr::mutate(
+    lon_grid = round(Lon / dec) * dec,
+    lat_grid = round(Lat / dec) * dec,
+    date_grid = lubridate::floor_date(Fecha, "month")
+  )
+
+amb_coords_grid <- amb_coords %>%
+  dplyr::mutate(
+    lon_grid = round(lon / dec) * dec,
+    lat_grid = round(lat / dec) * dec,
+    date_grid = lubridate::floor_date(date, "month")
+  )
+
+# 5. JOIN VECTORIAL: join espacial + temporal (rapidísimo)
+registros_env <- registros_proj %>%
+  dplyr::left_join(
+    amb_coords_grid %>% dplyr::select(lon_grid, lat_grid, date_grid, all_of(setdiff(names(amb_coords_grid), c("lon", "lat", "date", "lon_grid", "lat_grid", "date_grid")))),
+    by = c("lon_grid", "lat_grid", "date_grid")
+  )
+
+# 6. KNN SOLO PARA NAs
+amb_vars <- setdiff(names(amb_coords), c("lon", "lat", "date"))
+
+
+# 7. Elimina columnas auxiliares si no las necesitas
+registros_env <- registros_env %>%
+  dplyr::select(-lon_grid, -lat_grid, -date_grid)
+
+# Resumen de datos
+summary(registros_env)
+
+```
+
+
+# 9. Modelado de Riqueza y de Shannon
+
+### 9.0.1 Riqueza 
+
+```{r}
+# Define la resolución espacial para el agrupamiento (ej: 0.0833 para matching con grilla ambiental 0.083ºx0.083º)
+resol <- 0.0833
+
+# Redondea coordenadas para agrupar por "celda"
+round_coord <- function(x, res) round(x / res) * res
+
+# Añade columnas redondeadas para agrupar por celda
+registros_env <- registros_env %>%
+  mutate(
+    Lat_grid = round_coord(Lat, resol),
+    Lon_grid = round_coord(Lon, resol)
+  )
+
+# Tabla de riqueza de especies por Isla, celda, año
+tabla_riqueza_spacial <- registros_env %>%
+  group_by(Isla, Year, Lat_grid, Lon_grid) %>%
+  summarise(
+    Riqueza = n_distinct(Specie),
+    across(
+      #Añade variables ambientales promedio de esa celda y año:
+      .cols = c(SST, bottomT, mlotst, so, thetao, uo, vo, zos, chl, dissic, fe, nh4, no3, nppv, o2, ph, phyc, po4, si, spco2, zeu),
+      .fns  = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}_mean"
+    ),
+    .groups = "drop"
+  )
+
+# Opcional: visualizar la estructura
+print(head(tabla_riqueza_spacial, 10))
+
+```
+
+### 9.0.1 Shannon
+
+```{r}
+# Define la resolución espacial para el agrupamiento
+resol <- 0.0833
+
+# Redondea coordenadas para agrupar por celda
+round_coord <- function(x, res) round(x / res) * res
+
+registros_env <- registros_env %>%
+  mutate(
+    Lat_grid = round_coord(Lat, resol),
+    Lon_grid = round_coord(Lon, resol)
+  )
+
+# Cálculo de índices de diversidad por celda y año
+tabla_diversidad_spacial <- registros_env %>%
+  group_by(Isla, Year, Lat_grid, Lon_grid) %>%
+  summarise(
+    Riqueza = n_distinct(Specie),
+    # Crea un vector de especies para calcular Shannon y Simpson
+    Shannon = ifelse(n() > 1, vegan::diversity(table(Specie)), 0),
+    Simpson = ifelse(n() > 1, vegan::diversity(table(Specie), "simpson"), 0),
+    across(
+      .cols = c(SST, bottomT, mlotst, so, thetao, uo, vo, zos, chl, dissic, fe, nh4, no3, nppv, o2, ph, phyc, po4, si, spco2, zeu),
+      .fns  = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}_mean"
+    ),
+    .groups = "drop"
+  )
+
+# Vista previa
+print(head(tabla_diversidad_spacial, 10))
+
+```
+
+## 9.1. Matriz de autocorrelación
+```{r}
+
+# 1. Asegura formato tibble para que select funcione correctamente
+tabla_diversidad_spacial <- as_tibble(tabla_diversidad_spacial)
+
+# 2. Selecciona variables ambientales (las que acaban en "_mean")
+amb_vars <- grep("_mean$", names(tabla_diversidad_spacial), value = TRUE)
+
+# 3. Define los índices de diversidad que tienes en la tabla
+div_vars <- intersect(c("Riqueza", "Shannon"), names(tabla_diversidad_spacial))
+
+# 4. Junta todo para la matriz de correlación
+vars_cor <- c(div_vars, amb_vars)
+
+# 5. Filtra filas completas solo para las columnas elegidas (autocorrelación bien hecha)
+df_cor <- tabla_diversidad_spacial %>%
+  dplyr::select(all_of(vars_cor)) %>%
+  dplyr::filter(if_all(everything(), ~ !is.na(.)))
+
+
+# 6. Matriz de correlación visual (solo si hay suficientes datos)
+if (nrow(df_cor) > 10 && length(vars_cor) > 1) {
+  GGally::ggpairs(df_cor)
+} else {
+  cat("No hay suficientes datos completos para calcular la matriz de correlación.\n")
+}
+
+```
+
+## 9.2. Modelos
+
+```{r}
+# 1. Selección de variables: riqueza/diversidad + ambientales
+tabla_diversidad_spacial <- tibble::as_tibble(tabla_diversidad_spacial)
+amb_vars <- grep("_mean$", names(tabla_diversidad_spacial), value = TRUE)
+div_vars <- intersect(c("Riqueza", "Shannon"), names(tabla_diversidad_spacial))
+
+# Modelos para cada índice (Riqueza y Shannon)
+for (indice in div_vars) {
+  cat("\n=== MODELADO DEL ÍNDICE:", indice, "===\n")
+  
+  # Filtrado y selección
+  df_mod <- tabla_diversidad_spacial %>%
+    dplyr::select(all_of(c(indice, amb_vars))) %>%
+    dplyr::filter(if_all(everything(), ~ !is.na(.)))
+  
+  if (nrow(df_mod) > 30 && length(amb_vars) > 0) {
+    # 1. Elimina variables casi constantes
+    amb_vars_ok <- amb_vars[sapply(df_mod[amb_vars], function(x) length(unique(x)) > 5)]
+    if(length(amb_vars_ok) == 0) {
+      cat("Ninguna variable ambiental tiene variación suficiente para GAM. Se omite el índice", indice, "\n")
+      next
+    }
+    # 2. Fórmulas
+    formula_lm <- as.formula(paste(indice, "~", paste(amb_vars_ok, collapse = " + ")))
+    formula_gam <- as.formula(paste(indice, "~", paste(sprintf("s(%s, bs='cs', k=%d)", amb_vars_ok, pmin(10, max(4, floor(nrow(df_mod)/4)))), collapse = " + ")))
+    
+    # 3. Modelos
+    lm_full <- lm(formula_lm, data = df_mod)
+    lm_step <- MASS::stepAIC(lm_full, direction = "both", trace = FALSE)
+    gam_mod <- tryCatch(
+      mgcv::gam(formula_gam, data = df_mod, select = TRUE),
+      error = function(e) {
+        cat("GAM no pudo ajustarse para", indice, ":", e$message, "\n")
+        NULL
+      }
+    )
+    
+    # 4. Resultados
+    cat("--- Modelo lineal (stepAIC) ---\n")
+    print(broom::tidy(lm_step))
+    kable(broom::tidy(lm_step), caption = paste("Modelo Lineal (", indice, ") seleccionado", sep=""))
+    
+    if(!is.null(gam_mod)) {
+      cat("--- Modelo GAM ---\n")
+      print(summary(gam_mod))
+      kable(broom::tidy(gam_mod), caption = paste("Modelo GAM (", indice, ") seleccionado", sep=""))
+    }
+    
+  } else {
+    cat("No hay suficientes datos completos para modelar el índice", indice, "\n")
+  }
+}
+```
+
+
+```{r}
+# MODELOS POR ISLA
+for (indice in div_vars) {
+  cat("\n--- Modelos por isla para", indice, " ---\n")
+  for (isla in unique(tabla_diversidad_spacial$Isla)) {
+    df_isla <- tabla_diversidad_spacial %>%
+      filter(Isla == isla) %>%
+      dplyr::select(all_of(c(indice, amb_vars))) %>%
+      dplyr::filter(if_all(everything(), ~ !is.na(.)))
+    # Elimina variables ambientales sin variación real en esta isla
+    amb_vars_isla <- amb_vars[sapply(df_isla[amb_vars], function(x) length(unique(x)) > 5)]
+    if (nrow(df_isla) > 12 && length(amb_vars_isla) > 0) {
+      formula_lm <- as.formula(paste(indice, "~", paste(amb_vars_isla, collapse = " + ")))
+      lm_isla <- lm(formula_lm, data = df_isla)
+      lm_step_isla <- tryCatch(
+        MASS::stepAIC(lm_isla, direction = "both", trace = FALSE),
+        error = function(e) {cat("No se pudo ajustar stepAIC para", isla, "\n"); return(NULL)}
+      )
+      cat("\n== Isla:", isla, "==\n")
+      if(!is.null(lm_step_isla)) print(broom::tidy(lm_step_isla))
+    } else {
+      cat("No hay suficientes datos completos o variación para modelar la isla", isla, "\n")
+    }
+  }
+}
+```
+
+
+```{r}
+# MODELOS POR BANDAS LATITUDINALES
+lat_breaks <- seq(floor(min(tabla_diversidad_spacial$Lat_grid, na.rm=TRUE)),
+                  ceiling(max(tabla_diversidad_spacial$Lat_grid, na.rm=TRUE)), by=0.25)
+tabla_diversidad_spacial <- tabla_diversidad_spacial %>%
+  mutate(lat_band = cut(Lat_grid, breaks=lat_breaks, include.lowest=TRUE, right=FALSE))
+
+for (indice in div_vars) {
+  cat("\n--- Modelos por banda latitudinal para", indice, " ---\n")
+  for (banda in unique(tabla_diversidad_spacial$lat_band)) {
+    df_lat <- tabla_diversidad_spacial %>%
+      filter(lat_band == banda) %>%
+      dplyr::select(all_of(c(indice, amb_vars))) %>%
+      dplyr::filter(if_all(everything(), ~ !is.na(.)))
+    if (nrow(df_lat) > 10) {
+      formula_lm <- as.formula(paste(indice, "~", paste(amb_vars, collapse = " + ")))
+      lm_lat <- lm(formula_lm, data = df_lat)
+      lm_step_lat <- MASS::stepAIC(lm_lat, direction = "both", trace = FALSE)
+      cat("\n== Banda latitudinal:", banda, "==\n")
+      print(broom::tidy(lm_step_lat))
+    }
+  }
+}
+```
+
+
+```{r}
+# MODELOS POR BANDAS LONGITUDINALES
+lon_vals <- tabla_diversidad_spacial$Lon_grid
+lon_vals <- lon_vals[!is.na(lon_vals)]
+
+if(length(lon_vals) < 2) {
+  stop("No hay suficientes coordenadas longitudinales válidas para crear bandas.")
+}
+
+lon_breaks <- seq(
+  floor(min(lon_vals)), 
+  ceiling(max(lon_vals)), 
+  by = 0.25
+)
+
+tabla_diversidad_spacial <- tabla_diversidad_spacial %>%
+  mutate(lon_band = cut(Lon_grid, breaks = lon_breaks, include.lowest = TRUE, right = FALSE))
+
+for (indice in div_vars) {
+  cat("\n--- Modelos por banda longitudinal para", indice, " ---\n")
+  for (banda in unique(tabla_diversidad_spacial$lon_band)) {
+    df_lon <- tabla_diversidad_spacial %>%
+      filter(lon_band == banda) %>%
+      dplyr::select(all_of(c(indice, amb_vars))) %>%
+      dplyr::filter(if_all(everything(), ~ !is.na(.)))
+    if (nrow(df_lon) > 10) {
+      formula_lm <- as.formula(paste(indice, "~", paste(amb_vars, collapse = " + ")))
+      lm_lon <- lm(formula_lm, data = df_lon)
+      lm_step_lon <- MASS::stepAIC(lm_lon, direction = "both", trace = FALSE)
+      cat("\n== Banda longitudinal:", banda, "==\n")
+      print(broom::tidy(lm_step_lon))
+    }
+  }
+}
+
+```
+
+## 9.3. Contrastes y visualización de los modelos  
+
+```{r}
+# Variables ambientales y de diversidad
+tabla_diversidad_spacial <- tibble::as_tibble(tabla_diversidad_spacial)
+amb_vars <- grep("_mean$", names(tabla_diversidad_spacial), value = TRUE)
+div_vars <- intersect(c("Riqueza", "Shannon"), names(tabla_diversidad_spacial))
+
+cat("Variables ambientales:", paste(amb_vars, collapse = ", "), "\n")
+cat("Índices de diversidad:", paste(div_vars, collapse = ", "), "\n")
+
+# Función para elegir familia GAM según índice
+choose_family <- function(indice) {
+  if (indice == "Riqueza") {
+    # Conteos (discretos y no negativos)
+    return("poisson")
+  } else if (indice == "Shannon") {
+    # Índices continuos, positivos o negativos (a veces)
+    return("gaussian")
+  } else {
+    return("gaussian")
+  }
+}
+
+# =====================
+# Modelado GAM general para cada índice
+for (indice in div_vars) {
+  cat("\n=== MODELADO DEL ÍNDICE:", indice, "===\n")
+  
+  df_mod <- tabla_diversidad_spacial %>%
+    dplyr::select(all_of(c(indice, amb_vars))) %>%
+    dplyr::filter(if_all(everything(), ~ !is.na(.)))
+  
+  if (nrow(df_mod) > 30 && length(amb_vars) > 0) {
+    # Filtra variables con suficiente variabilidad (>5 valores únicos)
+    amb_vars_ok <- amb_vars[sapply(df_mod[amb_vars], function(x) length(unique(x)) > 5)]
+    if(length(amb_vars_ok) == 0) {
+      cat("No hay variables ambientales con suficiente variabilidad para el índice", indice, "\n")
+      next
+    }
+    
+    # Construcción de fórmula GAM con términos suaves
+    k_val <- pmin(10, max(4, floor(nrow(df_mod)/4)))
+    gam_terms <- sprintf("s(%s, bs='cs', k=%d)", amb_vars_ok, k_val)
+    formula_gam <- as.formula(paste(indice, "~", paste(gam_terms, collapse = " + ")))
+    
+    # Elegir familia según variable dependiente
+    fam <- choose_family(indice)
+    
+    # Ajuste GAM con selección de términos y familia adecuada
+    gam_mod <- tryCatch(
+      mgcv::gam(formula_gam, data = df_mod, family = fam, select = TRUE),
+      error = function(e) { cat("GAM no pudo ajustarse para", indice, ":", e$message, "\n"); return(NULL) }
+    )
+    
+    if(!is.null(gam_mod)) {
+      cat("--- Modelo GAM ---\n")
+      print(summary(gam_mod))
+      print(kable(broom::tidy(gam_mod), caption = paste("Modelo GAM (", indice, ") seleccionado", sep="")))
+    } else {
+      cat("No se generó modelo GAM para", indice, "\n")
+    }
+    
+  } else {
+    cat("No hay suficientes datos completos para modelar el índice", indice, "\n")
+  }
+}
+```
+
+## 9.4. Visualización para el primer índice disponible
+
+
+```{r}
+if(length(div_vars) > 0) {
+  indice <- div_vars[1]
+  
+  # Filtra datos y variables con suficiente variabilidad
+  df_vis <- tabla_diversidad_spacial %>%
+    dplyr::select(all_of(c(indice, amb_vars))) %>%
+    dplyr::filter(if_all(everything(), ~ !is.na(.))) %>%
+    slice_head(n=200)  # Limita filas para gráfica
+  
+  amb_vars_vis <- amb_vars[sapply(df_vis[amb_vars], function(x) length(unique(x)) > 3)]
+  if(length(amb_vars_vis) == 0) stop("No hay variables ambientales con suficiente variabilidad para visualizar modelos.")
+  
+  # Fórmula GAM con k dinámico para cada variable
+  k_val_vis <- function(v) max(3, min(10, length(unique(df_vis[[v]]))))
+  gam_terms_vis <- sapply(amb_vars_vis, function(v) paste0("s(", v, ", bs='cs', k=", k_val_vis(v), ")"))
+  
+  formula_gam_vis <- as.formula(paste(indice, "~", paste(gam_terms_vis, collapse = " + ")))
+  
+  fam_vis <- choose_family(indice)
+  gam_fit <- mgcv::gam(formula_gam_vis, data = df_vis, family = fam_vis, select = TRUE)
+  
+  # Summary del modelo GAM
+  cat("=== Summary del modelo GAM para índice:", indice, "===\n")
+  print(summary(gam_fit))
+  
+  # Predicción y gráfico observados vs predichos
+  df_vis$pred_gam <- predict(gam_fit, newdata = df_vis, type = "response")
+  p <- ggplot(df_vis, aes(x = pred_gam, y = .data[[indice]])) +
+    geom_point(alpha = 0.5) +
+    geom_abline(color = "blue") +
+    labs(title = paste("GAM: Predicción vs Observado para", indice),
+         x = "Predicción GAM", y = "Observado") +
+    theme_minimal()
+  print(p)
+  
+  # PCA de variables independientes (ambientales)
+  pca_vars <- df_vis %>% dplyr::select(all_of(amb_vars_vis))
+  pca_res <- prcomp(pca_vars, scale. = TRUE)
+  
+  # Mostrar resumen de PCA
+  cat("\n=== Summary de PCA para variables ambientales ===\n")
+  print(summary(pca_res))
+  
+  # Dataframe para graficar las dos primeras componentes
+  pca_df <- data.frame(pca_res$x) %>%
+    dplyr::mutate(Observacion = row_number())
+  
+  # Visualización de PCA
+  p_pca <- ggplot(pca_df, aes(x = PC1, y = PC2)) +
+    geom_point(alpha = 0.7) +
+    labs(title = "PCA de variables ambientales usadas en el modelo GAM",
+         x = "Componente Principal 1", y = "Componente Principal 2") +
+    theme_minimal()
+  
+  print(p_pca)
+}
+
+
+```
+
+## 9.5. Modelado Global
+
+
+```{r}
+library(dplyr)
+library(mgcv)
+library(gratia)
+library(ggplot2)
+
+amb_vars <- grep("_mean$", names(tabla_diversidad_spacial), value = TRUE)
+div_vars <- intersect(c("Riqueza", "Shannon"), names(tabla_diversidad_spacial))
+
+choose_family <- function(indice) {
+  if (indice == "Riqueza") return("poisson")
+  else if (indice == "Shannon") return("gaussian")
+  else return("gaussian")
+}
+
+fit_gam_safe <- function(formula, data, family) {
+  tryCatch(
+    mgcv::gam(formula, data = data, family = family, select = TRUE),
+    error = function(e) {
+      message("Error ajustando GAM: ", e$message)
+      NULL
+    }
+  )
+}
+
+for (indice in div_vars) {
+  cat("\n=== MODELO PARA ÍNDICE:", indice, "===\n")
+  
+  vars_existentes <- intersect(c(indice, amb_vars), names(tabla_diversidad_spacial))
+  df_mod <- tabla_diversidad_spacial %>%
+    dplyr::select(any_of(vars_existentes)) %>%
+    dplyr::filter(if_all(everything(), ~ !is.na(.)))
+  
+  if (nrow(df_mod) > 30) {
+    amb_vars_ok <- amb_vars[sapply(df_mod[intersect(amb_vars, names(df_mod))], function(x) length(unique(x)) > 5)]
+    if (length(amb_vars_ok) == 0) {
+      cat("No hay variables ambientales con suficiente variabilidad para", indice, "\n")
+      next
+    }
+    
+    k_val <- pmin(10, max(4, floor(nrow(df_mod)/4)))
+    gam_terms <- sprintf("s(%s, bs='cs', k=%d)", amb_vars_ok, k_val)
+    formula_gam <- as.formula(paste(indice, "~", paste(gam_terms, collapse = " + ")))
+    
+    fam <- choose_family(indice)
+    gam_mod <- fit_gam_safe(formula_gam, df_mod, fam)
+    
+    if (!is.null(gam_mod)) {
+      cat("--- Summary del modelo GAM ---\n")
+      print(summary(gam_mod))
+    }
+  } else {
+    cat("No hay suficientes datos para modelar", indice, "\n")
+  }
+}
+
+
+
+
+```
+### 9.5.1. PCA y analisis por clusters
+```{r}
+# 1. Extraemos matriz de valores ajustados de términos suaves del GAM
+fitted_vals <- predict(gam_mod, type = "terms")
+
+# 2. PCA sobre matriz escalada de valores ajustados
+pca_res <- prcomp(fitted_vals, scale. = TRUE)
+
+# 3. DataFrame para graficar PCA (PC1 y PC2)
+pca_df <- data.frame(pca_res$x) %>%
+  tibble::rownames_to_column(var = "Observacion")
+
+# Gráfico PCA básico
+gg_pca <- ggplot(pca_df, aes(x = PC1, y = PC2)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "PCA de componentes suaves del GAM",
+       x = "PC1", y = "PC2") +
+  theme_minimal()
+print(gg_pca)
+
+# 4. Clustering jerárquico usando PC1 y PC2
+dist_matrix <- dist(pca_df[, c("PC1", "PC2")])
+hc <- hclust(dist_matrix, method = "ward.D2")
+
+# Elegimos número de clusters k (ajustable)
+k <- 3
+clusters <- cutree(hc, k = k)
+pca_df$cluster <- factor(clusters)
+
+# 5. Dendrograma con etiquetas espaciadas para evitar solapamientos
+# 6. Gráfico PCA coloreado según clusters
+gg_pca_cluster <- ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.8, size = 3) +
+  labs(title = paste("PCA coloreada por", k, "clusters"),
+       x = "PC1", y = "PC2") +
+  theme_minimal()
+print(gg_pca_cluster)
+
+# 7. Tabla con cargas (loadings) de la PCA para interpretar variables
+cat("\nCargas (loadings) de las variables en la PCA:\n")
+print(round(pca_res$rotation, 3))
+
+```
+
+
+## 9.6. Modelado por isla
+
+```{r}
+choose_family <- function(indice) {
+  if (indice == "Riqueza") return("poisson")
+  else if (indice == "Shannon") return("gaussian")
+  else return("gaussian")
+}
+
+fit_gam_safe <- function(formula, data, family) {
+  tryCatch(
+    mgcv::gam(formula, data = data, family = family, select = TRUE),
+    error = function(e) {
+      message("Error ajustando GAM: ", e$message)
+      NULL
+    }
+  )
+}
+
+for (indice in div_vars) {
+  cat("\n=== MODELADO POR ISLA DEL ÍNDICE:", indice, "===\n")
+  for (isla in unique(tabla_diversidad_spacial$Isla)) {
+    df_isla <- tabla_diversidad_spacial %>%
+      dplyr::filter(Isla == isla) %>%
+      dplyr::select(any_of(c(indice, amb_vars))) %>%
+      dplyr::filter(if_all(everything(), ~ !is.na(.)))
+    
+    if (nrow(df_isla) > 12) {
+      amb_vars_isla <- amb_vars[sapply(df_isla[intersect(amb_vars, names(df_isla))], function(x) length(unique(x)) > 5)]
+      
+      if(length(amb_vars_isla) == 0) {
+        cat("No hay variables ambientales con suficiente variabilidad para isla", isla, "índice", indice, "\n")
+        next
+      }
+      
+      k_val <- pmin(10, max(4, floor(nrow(df_isla)/4)))
+      gam_terms <- sprintf("s(%s, bs='cs', k=%d)", amb_vars_isla, k_val)
+      formula_gam <- as.formula(paste(indice, "~", paste(gam_terms, collapse = " + ")))
+      fam <- choose_family(indice)
+      
+      gam_mod <- fit_gam_safe(formula_gam, df_isla, fam)
+      
+      cat("\n-- Isla:", isla, "--\n")
+      if (!is.null(gam_mod)) {
+        print(broom::tidy(gam_mod))
+
+      } else {
+        cat("No se pudo ajustar GAM para isla", isla, "índice", indice, "\n")
+      }
+    } else {
+      cat("No hay suficientes datos para modelar isla", isla, "índice", indice, "\n")
+    }
+  }
+}
+
+
+
+
+```
+
+##  9.7. Modelado por bandas latitudinales
+
+
+```{r}
+
+lat_breaks <- seq(floor(min(tabla_diversidad_spacial$Lat_grid, na.rm=TRUE)),
+                  ceiling(max(tabla_diversidad_spacial$Lat_grid, na.rm=TRUE)), by=0.25)
+tabla_diversidad_spacial <- tabla_diversidad_spacial %>%
+  mutate(lat_band = cut(Lat_grid, breaks=lat_breaks, include.lowest=TRUE, right=FALSE))
+
+for (indice in div_vars) {
+  cat("\n=== Visualización de efectos suaves por bandas latitudinales para:", indice, "===\n")
+  
+  for (banda in unique(tabla_diversidad_spacial$lat_band)) {
+    df_lat <- tabla_diversidad_spacial %>%
+      dplyr::filter(lat_band == banda) %>%
+      dplyr::select(all_of(c(indice, amb_vars))) %>%
+      dplyr::filter(if_all(everything(), ~ !is.na(.)))
+    
+    if (nrow(df_lat) > 10) {
+      amb_vars_lat <- amb_vars[sapply(df_lat[amb_vars], function(x) length(unique(x)) > 5)]
+      if(length(amb_vars_lat) == 0) {
+        cat("No variables con suficiente variabilidad para banda latitudinal", banda, "índice", indice, "\n")
+        next
+      }
+      k_val <- pmin(10, max(4, floor(nrow(df_lat)/4)))
+      gam_terms <- sprintf("s(%s, bs='cs', k=%d)", amb_vars_lat, k_val)
+      formula_gam <- as.formula(paste(indice, "~", paste(gam_terms, collapse = " + ")))
+      fam <- choose_family(indice)
+      
+      gam_mod <- fit_gam_safe(formula_gam, df_lat, fam)
+      
+      if (!is.null(gam_mod)) {
+        cat("\n-- Banda latitudinal:", banda, "--\n")
+        for (i in seq_along(amb_vars_lat)) {
+          p <- draw(gam_mod, select = i) + 
+            ggtitle(paste("Banda latitudinal:", banda, "\nEfecto suave de", amb_vars_lat[i], "sobre", indice))
+          print(p)
+          Sys.sleep(0.3)  # Para evitar solapamiento rápido
+        }
+      } else {
+        cat("No se pudo ajustar GAM para banda latitudinal", banda, "índice", indice, "\n")
+      }
+    }
+  }
+}
+```
+## 9.8. Modelado por bandas longitudinales
+
+```{r}
+lon_vals <- tabla_diversidad_spacial$Lon_grid
+lon_vals <- lon_vals[!is.na(lon_vals)]
+if(length(lon_vals) < 2) stop("No hay suficientes coordenadas longitudinales válidas para crear bandas.")
+
+lon_breaks <- seq(
+  floor(min(lon_vals)), 
+  ceiling(max(lon_vals)), 
+  by = 0.25
+)
+
+tabla_diversidad_spacial <- tabla_diversidad_spacial %>%
+  mutate(lon_band = cut(Lon_grid, breaks = lon_breaks, include.lowest = TRUE, right = FALSE))
+
+for (indice in div_vars) {
+  cat("\n=== Visualización de efectos suaves por bandas longitudinales para:", indice, "===\n")
+  
+  for (banda in unique(tabla_diversidad_spacial$lon_band)) {
+    df_lon <- tabla_diversidad_spacial %>%
+      filter(lon_band == banda) %>%
+      dplyr::select(any_of(c(indice, amb_vars))) %>%
+      filter(if_all(everything(), ~ !is.na(.)))
+    
+    if (nrow(df_lon) > 10) {
+      amb_vars_lon <- amb_vars[sapply(df_lon[amb_vars], function(x) length(unique(x)) > 5)]
+      if(length(amb_vars_lon) == 0) {
+        cat("No variables con suficiente variabilidad para banda longitudinal", banda, "índice", indice, "\n")
+        next
+      }
+      k_val <- pmin(10, max(4, floor(nrow(df_lon)/4)))
+      gam_terms <- sprintf("s(%s, bs='cs', k=%d)", amb_vars_lon, k_val)
+      formula_gam <- as.formula(paste(indice, "~", paste(gam_terms, collapse = " + ")))
+      fam <- choose_family(indice)
+      
+      gam_mod <- fit_gam_safe(formula_gam, df_lon, fam)
+      
+      if (!is.null(gam_mod)) {
+        cat("\n-- Banda longitudinal:", banda, "--\n")
+        for (i in seq_along(amb_vars_lon)) {
+          p <- gratia::draw(gam_mod, select = i) + 
+            ggtitle(paste("Banda longitudinal:", banda, "\nEfecto suave de", amb_vars_lon[i], "sobre", indice))
+          print(p)
+          Sys.sleep(0.3)  # Para que se rendericen bien los gráficos
+        }
+      } else {
+        cat("No se pudo ajustar GAM para banda longitudinal", banda, "índice", indice, "\n")
+      }
+    }
+  }
+}
+
+
+```
+
+# 10. Resultados y Discusión:
+
+* Desarrollo e interpretación de los principales patrones encontrados:
+
+* ¿Qué islas muestran mayor diversidad y cómo varía en el tiempo?
+
+* ¿Existe un gradiente este-oeste, latitudinal o longitudinal claro?
+
+* ¿Qué variables ambientales parecen correlacionar más fuertemente con la diversidad?
+
+* ¿Existen tendencias de pérdida o ganancia de diversidad?
+
+* ¿Cómo varía la estacionalidad y variabilidad mensual?
+
+# 11. Conclusiones y Perspectivas
+
+* Principales hallazgos ecológicos
+
+* Limitaciones del análisis
+
+* Recomendaciones para estudios futuros
+
+
