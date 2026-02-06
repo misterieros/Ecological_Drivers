@@ -11,6 +11,7 @@ library(osmdata)
 library(units)
 library(dplyr)
 library(extrafont)
+library(purrr)
 
 # Registrar las fuentes del sistema
 #font_import(prompt = FALSE)  # Puede tardar unos minutos
@@ -180,7 +181,6 @@ ggplot() +
   coord_sf(xlim = c(-18.5, -13.3), ylim = c(27.6, 29.4), expand = FALSE) +
   theme_minimal(base_size = 15) +
   theme(
-    element_text
     panel.background = element_rect(fill = "white", color = NA),
     panel.border = element_rect(fill = NA, color = "black", size = 1),
     plot.title = element_text(hjust = 0.5, size = 18, face = "bold")
