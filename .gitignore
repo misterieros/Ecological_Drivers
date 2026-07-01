@@ -1,0 +1,36 @@
+# R
+.Rhistory
+.RData
+.RDataTmp*
+.Rproj.user/
+*.Ruserdata
+
+# R outputs
+*.html
+*.log
+*.aux
+*.out
+*.toc
+*.synctex.gz
+
+# LaTeX build files
+article/manuscript/*.aux
+article/manuscript/*.bbl
+article/manuscript/*.bcf
+article/manuscript/*.blg
+article/manuscript/*.log
+article/manuscript/*.out
+article/manuscript/*.run.xml
+article/manuscript/*.synctex.gz
+article/manuscript/*.toc
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Temporary outputs
+outputs/logs/*.log
+outputs/tmp/
+
+# Keep Git LFS for heavy scientific data where needed
+# *.nc files are tracked by .gitattributes

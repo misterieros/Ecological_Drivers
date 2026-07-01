@@ -1,0 +1,317 @@
+---
+title: "Richness Algae Metacommunity"
+author: "Eros Fernando Geppi"
+date: "2025-06-16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+# Analisis de Biodiversidad de Metacomunidades de algas en Canarias 1992-2021
+
+```{r libraries}
+# Visualización elegante y flexible
+library(ggplot2)       # Gráficos estáticos usando gramática de gráficos
+
+# Manipulación de datos
+library(dplyr)         # Manipulación de datos (filtrar, seleccionar, resumir, etc.)
+library(tidyr)         # Transformación de datos de formato ancho/largo
+library(knitr)         # Transformación de datos de formato ancho/largo
+library(forcats)       # Manipulación de factores (categorías)
+library(purrr)         # Programación funcional (aplicación de funciones a listas)
+library(broom)         # Convierte resultados estadísticos en data frames ordenados
+
+# Lectura y organización de archivos
+library(readxl)        # Importación de archivos Excel (.xls, .xlsx)
+library(here)          # Gestión robusta de rutas relativas a la raíz del proyecto
+
+# Temas y colores para gráficos
+library(hrbrthemes)    # Temas modernos para ggplot2
+library(viridis)       # Paletas de colores perceptualmente uniformes
+
+# Análisis estadístico y ecológico
+library(vegan)         # Análisis de ecología multivariante (diversidad, NMDS, etc.)
+library(cluster)       # Métodos de agrupamiento (clustering)
+library(gam)           # Modelos aditivos generalizados (GAM) - versión antigua
+library(mgcv)          # Modelos aditivos generalizados (GAM) más actualizada y robusta
+library(tweedie)       # Modelado de distribuciones de la familia Tweedie
+
+# Visualización avanzada y combinaciones de gráficos
+library(patchwork)     # Combina múltiples gráficos de ggplot2 en un solo panel
+
+# Exportación de gráficos y reportes
+library(officer)       # Generación y edición de documentos Word/PowerPoint
+library(rvg)           # Exporta gráficos como vectores editables a PowerPoint/Word
+library(export)        # Exporta gráficos de R a varios formatos (PowerPoint, PNG, etc.)
+library(tibble)
+```
+
+## 1. Preparacion inicial de los datos
+
+
+```{r databases, echo=FALSE}
+Algae_records <- read_excel(file.path("data", "raw", "occurrences", "Registros_Biota.xlsx"), 
+    sheet = "Data", col_types = c("text", 
+        "text", "text", "text", "text", "text", 
+        "text", "text", "numeric", "numeric", 
+        "numeric", "text", "numeric", "numeric"))
+Algae_records <- Algae_records %>% 
+  mutate(Reino = as.factor(Reino),
+         Filo = as.factor(Filo),
+         Clase = as.factor(Clase),
+         Orden = as.factor(Orden),
+         Familia = as.factor(Familia),
+         Genero = as.factor(Genero),
+         Specie = as.factor(Specie),
+         Isla = as.factor(Isla),
+         Year = factor(Year, levels= c("1992","1993","1994","1995","1996","1997","1998","1999","2000","2001","2002","2003","2004","2005", "2006","2007","2008","2009","2010","2011","2012","2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")))
+
+Data = Algae_records %>% 
+  select(Reino, Filo, Clase, Orden, Familia, Genero, Specie, Year, Isla, Lat, Lon)
+
+summary(Data)
+```
+### 1.1. Revision del numero de niveles por categoría
+
+```{r}
+Data %>%
+  summarise(
+    n_Realm = n_distinct(Reino),
+    n_File = n_distinct(Filo),
+    n_Class = n_distinct(Clase),
+    n_Order = n_distinct(Orden),
+    n_Family = n_distinct(Familia),
+    n_Gender = n_distinct(Genero),
+    n_Species = n_distinct(Specie),
+    n_Islands = n_distinct(Isla),
+    n_Years = n_distinct(Year)
+  ) %>% kable()
+```
+
+### 1.2. Tabla de frecuencias: Registros por año.
+
+```{r}
+Data %>% count(Year) %>% 
+  arrange(desc(n)) %>% 
+  print(n=Inf) %>% 
+  kable()
+
+```
+
+### 1.3. Tabla de frecuencias: Registros por especie
+
+```{r}
+Data %>% count(Specie) %>% 
+  arrange(desc(n)) %>% 
+  head(15) %>%
+ kable()
+
+```
+
+### 1.4. Detección de NA o registros sin ubicación
+
+```{r}
+Data %>%
+  summarise(
+    na_lat = sum(is.na(Lat)),
+    na_lon = sum(is.na(Lon)),
+    na_year = sum(is.na(Year)),
+    na_isla = sum(is.na(Isla)),
+    na_specie = sum(is.na(Specie))
+  ) %>% 
+  kable()
+```
+
+## 2. Evaluacion de diversidad alpha, beta y patrones espaciotemporales.
+
+### 2.1. Diversidad Alpha por sitio y año.
+La *riqueza alfa* es el número de especies diferentes en una unidad local.
+
+#### 2.1.1. Calculo de diversidad alpha por isla y año
+
+```{r}
+alpha_div <- Data %>%
+  group_by(Isla, Year) %>%
+  summarise(richness = n_distinct(Specie)) %>%
+  ungroup()
+```
+
+#### 2.1.2 Visualizacion de riqueza local por isla y año.
+
+```{r}
+ggplot(alpha_div, aes(x= Year, y= richness, group = Isla, color=Isla)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(title = "Alpha richness (nº of species) by year and island") +
+  theme(axis.text.x = element_text( angle = 45, hjust=+1),
+        text = element_text(family = "serif")
+    )
+
+```
+
+### 2.2. Mapa de riqueza por sition
+
+#### 2.2.1. Agregar diversidad alpha por coordenadas
+
+```{r}
+alpha_geo <- Data %>%
+  group_by(Isla, Lat, Lon) %>%
+  summarise(richness = n_distinct(Specie)) %>%
+  ungroup()
+```
+#### 2.2.2. Visualizacion
+
+```{r}
+ggplot(alpha_geo, aes(x = Lon, y = Lat)) +
+  geom_point(aes(size = richness, color = Isla), alpha = 0.7) +
+  scale_size_continuous(range = c(2, 8)) +
+  theme_minimal() +
+  coord_fixed() +
+  labs(title = "Riqueza alfa por punto geográfico",
+       x = "Longitud", y = "Latitud", size = "Riqueza")
+```
+
+
+### 2.3. Diversidad beta entre islas
+
+La *diversidad beta* mide el recambio de especies entre sitios. Para esto generaremos una matriz presencia-ausencia por isla.
+
+#### 2.3.1. Matriz de Comunidad
+
+```{r}
+beta_matrix <- Data %>%
+  group_by(Isla, Specie) %>%
+  summarise(present = 1, .groups = "drop") %>%
+  pivot_wider(names_from = Specie, values_from = present, values_fill = 0)
+
+# Extraer solo la matriz de especies
+beta_mat <- as.data.frame(beta_matrix[, -1])
+rownames(beta_mat) <- beta_matrix$Isla
+```
+
+
+#### 2.3.2. Calcular distancias y disimilitudes (Jaccard)
+
+```{r}
+jaccard_dist <- vegdist(beta_mat, method = "jaccard")
+
+```
+
+#### 2.3.3. Análisis de ordenación (NMDS)
+
+```{r}
+nmds <- metaMDS(beta_mat, distance = "jaccard", k = 2, trymax = 100)
+
+plot(nmds, type = "t", display = "sites", main = "NMDS - Diversidad beta entre islas")
+```
+
+### 2.4 — Diversidad beta temporal dentro de islas.
+
+La idea aquí es evaluar el *recambio de especies a lo largo del tiempo* en cada isla. Es el mismo enfoque de comunidad presencia/ausencia, pero ahora por combinación Isla + Año.
+
+#### 2.4.1 — Crear matriz de presencia/ausencia por Isla y Año
+
+```{r}
+# Construimos la variable combinada Isla_Year
+Data <- Data %>%
+  mutate(Isla_Year = paste(Isla, Year, sep = "_"))
+
+# Matriz presencia-ausencia
+beta_time_matrix <- Data %>%
+  group_by(Isla_Year, Specie) %>%
+  summarise(present = 1, .groups = "drop") %>%
+  pivot_wider(names_from = Specie, values_from = present, values_fill = 0)
+
+# Guardamos info de etiquetas
+beta_time_labels <- beta_time_matrix$Isla_Year
+beta_time_mat <- as.data.frame(beta_time_matrix[,-1])
+rownames(beta_time_mat) <- beta_time_labels
+```
+
+#### 2.4.2 — Cálculo de disimilitud (Jaccard)
+
+```{r}
+# Matriz de distancia Jaccard entre combinaciones Isla-Año
+dist_jaccard_time <- vegdist(beta_time_mat, method = "jaccard")
+```
+
+
+#### 2.4.3 — Ordenación NMDS para visualizar patrones de cambio
+
+```{r}
+nmds_time <- metaMDS(beta_time_mat, distance = "jaccard", k = 2, trymax = 100)
+
+# Extraer coordenadas
+
+
+nmds_coords <- as.data.frame(scores(nmds_time, display = "sites"))
+nmds_coords$Isla_Year <- rownames(nmds_coords)
+nmds_coords <- nmds_coords %>%
+  separate(Isla_Year, into = c("Isla", "Year"), sep = "_")
+
+
+# Gráfico NMDS temporal
+ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = Isla, label = Year)) +
+  geom_path(aes(group = Isla), arrow = arrow(type = "open", length = unit(0.15, "inches")), alpha = 0.5) +
+  geom_point(size = 3) +
+  geom_text(size = 3, vjust = -1) +
+  theme_minimal() +
+  labs(title = "NMDS: Cambio en la composición de especies a lo largo del tiempo",
+       subtitle = "Por isla (distancia de Jaccard)", x = "NMDS1", y = "NMDS2")
+
+
+
+
+```
+
+## 3.Análisis de Diversidad Funcional y Taxonómica
+
+Aquí distinguiremos dos ramas:
+
+### 3.1 Diversidad taxonómica: basada en recuentos y relaciones jerárquicas (Filo, Clase, Orden, etc.)
+
+#### 3.1.1  Preparar tabla de riqueza taxonómica
+```{r}
+# Riqueza de especies por Isla y Año
+richness_taxa <- Data %>%
+  group_by(Isla, Year) %>%
+  summarise(Riqueza = n_distinct(Specie), .groups = "drop")
+
+ggplot(richness_taxa, aes(x = as.numeric(as.character(Year)), y = Riqueza, color = Isla)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Riqueza taxonómica por isla a lo largo del tiempo",
+       x = "Año", y = "Número de especies")
+```
+#### 3.1.2 Diversidad taxonomica con jerarquía
+
+```{r}
+# Matriz con jerarquía taxonómica
+taxonomy_df <- Data %>%
+  select(Specie, Filo, Clase, Orden, Familia, Genero) %>%
+  distinct() %>%
+  column_to_rownames("Specie")
+
+# Distancia taxonómica
+taxo_dist <- taxa2dist(taxonomy_df, varstep = TRUE)
+
+# Aplicar taxondive a una comunidad ejemplo (por Isla y Año)
+comunidad_ejemplo <- Data %>%
+  filter(Isla == "Tenerife", Year == "2008") %>%
+  count(Specie) %>%
+  pivot_wider(names_from = Specie, values_from = n, values_fill = 0)
+
+# Convertir a matriz
+comunidad_mat <- as.matrix(comunidad_ejemplo)
+
+# Calcular diversidad taxonómica
+taxo_div <- taxondive(comunidad_mat, taxo_dist)
+print(taxo_div)
+```
+
+
+

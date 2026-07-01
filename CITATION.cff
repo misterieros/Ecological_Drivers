@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the associated manuscript."
+title: "Ecological Drivers: macroalgal diversity across the Canary Islands"
+authors:
+  - family-names: "Geppi"
+    given-names: "Eros Fernando"
+  - family-names: "Gonzalez-Aragon"
+    given-names: "Daniel"
+  - family-names: "Riera"
+    given-names: "Rodrigo"
+repository-code: "https://github.com/misterieros/Ecological_Drivers"
+abstract: "Article-oriented workflow for analysing spatiotemporal patterns of macroalgal diversity across the Canary Islands."
+keywords:
+  - macroalgae
+  - Canary Islands
+  - marine biodiversity
+  - environmental gradients
+  - generalized additive models
+license: "NOASSERTION"
