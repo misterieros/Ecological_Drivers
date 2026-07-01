@@ -119,24 +119,6 @@ The `scripts/` folder contains R and RMarkdown scripts for:
 * Fitting and diagnostic assessment of generalized additive models
 * Generation of figures and summary outputs
 
-Scripts should be named with numeric prefixes when they are part of the main workflow, for example:
-
-```text
-00_setup.R
-01_clean_macroalgae_records.R
-02_extract_environmental_data.R
-03_compute_diversity_metrics.R
-04_spatial_analysis.R
-05_temporal_analysis.R
-06_GAM_models.R
-07_PCA_environmental_gradients.R
-08_make_figures.R
-09_make_tables.R
-run_pipeline.R
-```
-
-Exploratory or older scripts should be moved to `archive/` or to a clearly labelled legacy folder.
-
 ### Notebooks
 
 The `notebooks/` folder is intended for exploratory analyses, preliminary tests, and interactive workflows.
@@ -244,11 +226,7 @@ A repository citation file may be provided as:
 Geppi, E. F., Gonzalez-Aragon, D., & Riera, R. (2026). Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago. Estuarine, Coastal and Shelf Science, xx(x), xx-xx. https://doi.org/xx.xxxx/xxxxx
 ```
 
-## License
 
-The repository license should be defined in the `LICENSE` file.
-
-Reuse of data, scripts, and manuscript materials should follow the terms specified in that license and any additional restrictions associated with external datasets.
 
 ## Contact
 
