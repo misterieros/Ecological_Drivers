@@ -307,9 +307,3 @@ A repository citation file may be provided as:
 Geppi, E. F., Gonzalez-Aragon, D., & Riera, R. (2026). Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago. Estuarine, Coastal and Shelf Science, xx(x), xx-xx. https://doi.org/xx.xxxx/xxxxx
 ```
 
-## Contact
-
-For questions related to the manuscript, data organization, or analytical workflow, please contact the article authors.
-```
-
-
