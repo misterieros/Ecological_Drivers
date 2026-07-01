@@ -1,90 +1,257 @@
-# Ecological Drivers: macroalgal diversity across the Canary Islands
+````markdown
+# Ecological Drivers: Macroalgal Diversity Across the Canary Islands
 
-This repository contains the complete analytical workflow for the study of **marine macroalgal diversity across the Canary Islands archipelago**, integrating long-term biodiversity records with physical and biogeochemical environmental variables derived from satellite-based oceanographic products.
+## Project overview
 
-The project integrates historical macroalgal occurrence records with physical and biogeochemical environmental variables derived from Copernicus Marine products to analyse spatial and temporal diversity patterns across the Canary Islands.
+This repository contains the analytical workflow, data organization, scripts, figures, tables, and manuscript-related materials associated with the study of marine macroalgal diversity across the Canary Islands archipelago.
 
-The main objective of this project is to **quantify spatial and temporal patterns of macroalgal richness and diversity**, and to **identify the key environmental gradients shaping macroalgal communities** in an oceanographically complex insular system characterized by a strong east–west gradient.
+The project integrates long-term macroalgal occurrence records with physical and biogeochemical environmental variables derived from Copernicus Marine products to analyse spatial and temporal biodiversity patterns across an oceanographically heterogeneous insular system.
+
+The main objective of the study is to quantify spatial and temporal patterns of macroalgal richness and diversity and to identify the environmental gradients associated with macroalgal community structure across the Canary Islands.
+
+The Canary Islands provide a relevant marine system for this analysis because the archipelago is characterized by strong environmental heterogeneity and a pronounced east-west oceanographic gradient. This gradient separates eastern islands, more influenced by cooler and nutrient-enriched waters, from western islands, which are generally warmer and more oligotrophic.
+
+The workflow combines biodiversity data processing, environmental data extraction, diversity metric calculation, spatial and temporal visualization, multivariate analyses, and generalized additive models. The repository is organized to support reproducibility, manuscript development, figure and table generation, and future extensions of the workflow to other coastal or oceanic systems.
+
+## Associated article
+
+**Title:** Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago
+
+**Journal:** Estuarine, Coastal and Shelf Science
+
+**Manuscript number:** YECSS-D-26-00637R1
+
+## Article authorship
+
+The article associated with this repository was authored by:
+
+- Eros Fernando Geppi
+- Daniel Gonzalez-Aragon
+- Rodrigo Riera
+
+**Corresponding author:** Rodrigo Riera
+
+## Research scope
+
+This repository supports the analysis of:
+
+- Long-term macroalgal diversity dynamics across the Canary Islands
+- Spatial structuring of macroalgal assemblages across an oceanic archipelago
+- Alpha, beta, and gamma diversity patterns across multiple temporal scales
+- Relationships between macroalgal diversity and environmental variability
+- Non-linear diversity-environment associations using generalized additive models
+- Regional differences between eastern and western islands
+- Macro-ecological baselines for biodiversity assessment under environmental change
+
+## Analytical approach
 
 The analysis combines:
-- Historical macroalgal occurrence and richness records spanning multiple decades.
-- Environmental variables derived from Copernicus Marine Environment Monitoring Service (CMEMS) products.
-- Advanced statistical approaches, including **Generalized Additive Models (GAMs)**, to explore potentially non-linear relationships between biodiversity and environmental drivers.
 
-This integrative approach allows the detection of signals associated with **ocean warming**, **biogeochemical variability**, and **regional ocean circulation**, and their influence on benthic macroalgal communities.
+- Historical macroalgal occurrence and richness records spanning multiple decades
+- Physical and biogeochemical variables derived from Copernicus Marine Environment Monitoring Service products
+- Diversity metrics, including species richness, Shannon diversity, beta diversity, and gamma diversity
+- Spatial and temporal visualization of biodiversity patterns
+- Multivariate analyses of environmental gradients
+- Generalized additive models to explore non-linear relationships between biodiversity and environmental drivers
+
+This integrative approach allows the exploration of signals associated with ocean warming, biogeochemical variability, regional ocean circulation, and their relationships with benthic macroalgal communities.
 
 ## Repository structure
 
 ```text
-Ecological_Drivers_article_ready/ 
-├── article/                # Material directly associated with the manuscript                 
-│  ├── manuscript/          # Article source files: main.tex, references, and appendices    
-│  ├── figures/             # Final figures organized according to the manuscript order        
-│  ├── tables/              # Main and supplementary tables used in the manuscript              
-│  └── submission/          # Editorial submission files: highlights, cover letter, and rebuttal 
+Ecological_Drivers/
+├── article/                         # Material directly associated with the manuscript
+│   ├── manuscript/                  # Article source files: main.tex, references, and appendices
+│   ├── figures/                     # Final figures organized according to the manuscript order
+│   ├── tables/                      # Main and supplementary tables used in the manuscript
+│   └── submission/                  # Editorial submission files: highlights, cover letter, and rebuttal
 │
-├── data/                   # Data used or generated during the analysis 
-│ ├── raw/                  # Original, unmodified data 
-│ ├── processed/            # Cleaned, filtered, or aggregated data ready for analysis 
-│ └── metadata/             # Variable descriptions, data sources, units, and filtering criteria 
-│ 
-├── scripts/              # Reproducible code for data processing, analysis, and outputs 
+├── data/                            # Data used or generated during the analysis
+│   ├── raw/                         # Original, unmodified data
+│   ├── processed/                   # Cleaned, filtered, or aggregated data ready for analysis
+│   └── metadata/                    # Variable descriptions, data sources, units, and filtering criteria
 │
-├── notebooks/            # Exploratory notebooks and preliminary analyses 
-│ 
-├── outputs/              # Results generated by the scripts: Includes figures, tables, models, logs, and derived reports 
-│ 
-├── references/           # Bibliographic files, .bib databases, and supporting references 
-│ 
-└── docs/                 # Internal repository documentation: Includes repository audit, file manifest, and reproducibility notes
-```
+├── scripts/                         # Reproducible code for data processing, analysis, and outputs
+│
+├── notebooks/                       # Exploratory notebooks and preliminary analyses
+│
+├── outputs/                         # Results generated by the scripts
+│                                   # Includes figures, tables, models, logs, and derived reports
+│
+├── references/                      # Bibliographic files, .bib databases, and supporting references
+│
+└── docs/                            # Internal repository documentation
+                                    # Includes repository audit, file manifest, and reproducibility notes
+````
 
-```markdown
 ## Repository components and workflow
+
+### Article
+
+The `article/` folder contains all files directly associated with the manuscript. This includes the LaTeX source files, references, figures, tables, supplementary material, and editorial submission documents.
+
+Recommended use:
+
+* Keep the active manuscript files in `article/manuscript/`
+* Store final manuscript figures in `article/figures/`
+* Store main and supplementary tables in `article/tables/`
+* Store cover letters, highlights, response letters, and revision files in `article/submission/`
+
+### Data
+
+The `data/` folder contains the biological and environmental datasets used in the analysis.
+
+Recommended organization:
+
+* `data/raw/`: original data files, kept unchanged
+* `data/processed/`: cleaned, filtered, or aggregated data used by the scripts
+* `data/metadata/`: information on variables, units, sources, filtering criteria, and data structure
+
+Raw data should not be overwritten. Any transformation, filtering, or aggregation should generate a new file in `data/processed/`.
 
 ### Scripts
 
 The `scripts/` folder contains R and RMarkdown scripts for:
 
-- Biodiversity data cleaning and organization
-- Extraction and processing of environmental variables
-- Calculation of diversity metrics
-- Fitting and diagnostic assessment of generalized additive models
-- Generation of figures and summary outputs
+* Biodiversity data cleaning and organization
+* Extraction and processing of environmental variables
+* Calculation of diversity metrics
+* Fitting and diagnostic assessment of generalized additive models
+* Generation of figures and summary outputs
 
-This folder may also include auxiliary `.xlsx` and `.csv` files, as well as intermediate results used throughout the analysis.
+Scripts should be named with numeric prefixes when they are part of the main workflow, for example:
 
-### Methodological approach
+```text
+00_setup.R
+01_clean_macroalgae_records.R
+02_extract_environmental_data.R
+03_compute_diversity_metrics.R
+04_spatial_analysis.R
+05_temporal_analysis.R
+06_GAM_models.R
+07_PCA_environmental_gradients.R
+08_make_figures.R
+09_make_tables.R
+run_pipeline.R
+```
+
+Exploratory or older scripts should be moved to `archive/` or to a clearly labelled legacy folder.
+
+### Notebooks
+
+The `notebooks/` folder is intended for exploratory analyses, preliminary tests, and interactive workflows.
+
+Notebooks should be used for exploration, not as the main reproducible workflow. Analyses that become part of the final article should be transferred into scripts under `scripts/`.
+
+### Outputs
+
+The `outputs/` folder contains files generated by the analysis, including:
+
+* Figures
+* Tables
+* Model outputs
+* Logs
+* Reports
+* Intermediate summaries
+
+Generated outputs should be reproducible from the scripts and processed data.
+
+### References
+
+The `references/` folder contains bibliographic resources used for manuscript preparation.
+
+This may include:
+
+* BibTeX databases
+* Reference lists
+
+The active bibliography used by the manuscript should also be available in `article/manuscript/`.
+
+### Documentation
+
+The `docs/` folder contains internal repository documentation, including:
+
+* Repository audit notes
+* File manifests
+* Workflow descriptions
+* Reproducibility notes
+* Data documentation
+* Notes on manuscript revisions
+
+## Methodological approach
 
 This repository follows a reproducible workflow based on:
 
-- Integration of ecological and environmental data across multiple spatial scales
-- Use of non-linear statistical models, particularly generalized additive models
-- Spatial and temporal visualization of biodiversity patterns
-- Organization of scripts, data, outputs, and manuscript files for scientific use
+* Integration of ecological and environmental data across multiple spatial scales
+* Use of non-linear statistical models, particularly generalized additive models
+* Spatial and temporal visualization of biodiversity patterns
+* Organization of scripts, data, outputs, and manuscript files for scientific use
+* Separation between raw data, processed data, generated outputs, and manuscript materials
 
-### Applications
+## Applications
 
 This repository is intended to support:
 
-- Ecological analyses in marine insular systems
-- Biodiversity and environmental change studies
-- Scientific publications, theses, and technical reports
-- Reuse and extension of the workflow in other coastal or oceanic regions
+* Ecological analyses in marine insular systems
+* Biodiversity and environmental change studies
+* Macroalgal community analyses
+* Scientific publications, theses, and technical reports
+* Reuse and extension of the workflow in other coastal or oceanic regions
 
-### Requirements
+## Requirements
 
-The analysis is primarily conducted in R and relies on packages commonly used for ecological statistics, spatial analysis, and data visualization, including:
+The analysis is primarily conducted in R and relies on packages commonly used for ecological statistics, spatial analysis, and data visualization.
 
-- `tidyverse`
-- `mgcv`
-- `vegan`
-- `sf`
-- `raster`
-- `terra`
-- `ncdf4`
-- `ggplot2`
-- `patchwork`
+Main R packages include:
 
-Package requirements should be checked in the individual scripts and RMarkdown files before running the full workflow.
+* `tidyverse`
+* `mgcv`
+* `vegan`
+* `sf`
+* `raster`
+* `terra`
+* `ncdf4`
+* `ggplot2`
+* `patchwork`
+
+Additional packages may be required by specific scripts or RMarkdown files. Package requirements should be checked in the individual scripts before running the full workflow.
+
+## Reproducibility notes
+
+To improve reproducibility:
+
+* Use relative paths rather than absolute local paths
+* Keep raw data unchanged
+* Document all filtering and aggregation steps
+* Store generated outputs separately from source data
+* Keep exploratory analyses separate from the main workflow
+* Update metadata whenever variables, files, or processing steps change
+* Record software versions when possible
+
+## Data availability
+
+Data availability information should be described in the manuscript and, when applicable, linked to the corresponding public repository or DOI.
+
+If using external environmental products, data sources should be cited according to their provider guidelines.
+
+## Citation
+
+If you use this repository, please cite the associated article once published.
+
+A repository citation file may be provided as:
+
+```text
+Geppi, E. F., Gonzalez-Aragon, D., & Riera, R. (2026). Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago. Estuarine, Coastal and Shelf Science, xx(x), xx-xx. https://doi.org/xx.xxxx/xxxxx
+```
+
+## License
+
+The repository license should be defined in the `LICENSE` file.
+
+Reuse of data, scripts, and manuscript materials should follow the terms specified in that license and any additional restrictions associated with external datasets.
+
+## Contact
+
+For questions related to the manuscript, data organization, or analytical workflow, please contact the article authors.
+
 ```
