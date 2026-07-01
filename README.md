@@ -1,4 +1,3 @@
-````markdown
 # Ecological Drivers: Macroalgal Diversity Across the Canary Islands
 
 ## Project overview
