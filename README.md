@@ -216,9 +216,90 @@ Data availability information should be described in the manuscript and, when ap
 
 If using external environmental products, data sources should be cited according to their provider guidelines.
 
-## Citation
+## License
 
-If you use this repository, please cite the associated article once published.
+This repository uses a dual-license structure to distinguish between code and
+research materials.
+
+### Code
+
+All code, scripts, computational workflows, and software-like materials in this
+repository are released under the MIT License, unless otherwise stated.
+
+This applies to materials such as:
+
+- R scripts
+- RMarkdown scripts
+- workflow scripts
+- data-processing code
+- analysis code
+- plotting code
+- model-fitting code
+- utility functions
+
+The MIT License allows reuse, modification, distribution, sublicensing, and
+incorporation of the code into other projects, provided that the copyright
+notice and license text are retained.
+
+The full license text is available in the `LICENSE` file.
+
+### Data, figures, tables, and documentation
+
+Data products, processed datasets, figures, tables, metadata, documentation,
+and non-code research materials created by the authors are released under the
+Creative Commons Attribution 4.0 International License, CC BY 4.0, unless
+otherwise stated.
+
+This applies to author-generated materials such as:
+
+- processed biodiversity datasets
+- processed environmental datasets
+- derived summary tables
+- manuscript figures
+- supplementary tables
+- metadata files
+- documentation files
+- repository workflow descriptions
+
+Under CC BY 4.0, these materials may be shared and adapted, provided that
+appropriate credit is given, a link to the license is provided, and any changes
+made to the material are indicated.
+
+The full data and documentation license notice is available in the
+`LICENSE-DATA` file.
+
+### Third-party data and external products
+
+This repository may include or refer to third-party datasets, environmental
+products, biodiversity databases, satellite-derived products, reanalysis
+products, bibliographic resources, or other external materials.
+
+These third-party materials are not relicensed by this repository. They remain
+subject to the licenses, terms of use, citation requirements, and access
+conditions established by their original providers.
+
+Users are responsible for checking the original license and citation
+requirements before reusing third-party materials.
+
+### Manuscript and published article
+
+The manuscript and any published version of the associated article are subject
+to the copyright and licensing conditions established by the journal and
+publisher.
+
+If the article is published open access, reuse of the published article will
+follow the Creative Commons license selected during publication.
+
+If the article is published under a subscription model, the final published PDF
+should not be redistributed through this repository unless this is permitted by
+the publisher's policy. In that case, only the version allowed by the publisher
+should be shared.
+
+### Recommended citation
+
+When reusing materials from this repository, please cite the associated article
+once published and acknowledge the repository according to the citation
+information provided in `CITATION.cff`.
 
 A repository citation file may be provided as:
 
@@ -226,10 +307,9 @@ A repository citation file may be provided as:
 Geppi, E. F., Gonzalez-Aragon, D., & Riera, R. (2026). Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago. Estuarine, Coastal and Shelf Science, xx(x), xx-xx. https://doi.org/xx.xxxx/xxxxx
 ```
 
-
-
 ## Contact
 
 For questions related to the manuscript, data organization, or analytical workflow, please contact the article authors.
-
 ```
+
+
