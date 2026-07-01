@@ -1,0 +1,176 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{titlesec}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\setstretch{1.15}
+\setlist[itemize]{leftmargin=1.2cm}
+\setlist[enumerate]{leftmargin=1.2cm}
+
+\definecolor{commentblue}{RGB}{25,70,130}
+\definecolor{responsegreen}{RGB}{20,110,65}
+
+\newcommand{\reviewercomment}[1]{%
+\vspace{0.3em}
+\noindent\textbf{Comment.} \textcolor{commentblue}{#1}\par
+}
+
+\newcommand{\authorresponse}[1]{%
+\vspace{0.3em}
+\noindent\textbf{Response.} \textcolor{responsegreen}{#1}\par
+\vspace{0.8em}
+}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{Response to the Editor and Reviewers}}\\[0.5cm]
+{\large Manuscript number: YECSS-D-26-00637}\\[0.25cm]
+{\large \textit{Long-term spatio-temporal variability in macroalgal diversity across the Canary Islands (NE Atlantic)}}\\[0.25cm]
+{Eros Fernando Geppi, Daniel Gonzalez-Aragon, Rodrigo Riera}\\[0.5cm]
+\end{center}
+
+\noindent Dear Dr. Li,\\[0.3cm]
+
+\noindent We sincerely thank you and both reviewers for the careful evaluation of our manuscript and for the constructive comments. We are grateful for the recommendation of minor revision and have revised the manuscript accordingly. \\ 
+
+In the revised version, we have clarified the hypotheses in the Introduction, strengthened the interpretation of anthropogenic climate change as a potential background driver while maintaining the necessary caution imposed by the observational nature of the data, added explicit formulae for alpha, beta, and gamma diversity, revised figures and tables, and added a new comparative discussion section addressing similar studies from oceanic and Mediterranean coastal systems. \\ 
+
+\noindent Below, we provide a point-by-point response. Reviewer comments are reproduced in blue, and our responses are provided in green. All changes have been incorporated into the revised manuscript.
+
+\section{Response to the Editor}
+
+\reviewercomment{I invite you to resubmit your manuscript after addressing the comments below. Please outline every change made in response to their comments and provide suitable rebuttals for any comments not addressed.}
+
+\authorresponse{Thank you very much for handling our manuscript and for the opportunity to submit a revised version. We have carefully addressed all comments from Reviewer 1 and Reviewer 2. The revised manuscript now includes a clearer hypothesis statement in the Introduction, explicit formulae for the diversity metrics, revised figures and tables, an expanded discussion of anthropogenic climate change as a potential driver, a summary of the main environmental variables associated with the diversity metrics, and a new discussion subsection comparing our findings with similar studies from other oceanic and Mediterranean coastal systems. We believe these changes have improved the clarity, reproducibility, and ecological framing of the manuscript.}
+
+\section{Response to Reviewer 1}
+
+\subsection{Statistical analyses and diversity formulae}
+
+\reviewercomment{It is necessary to add some formulae for alpha, beta and gamma diversity.}
+
+\authorresponse{We agree with the reviewer. The Methods section has been expanded to include explicit definitions and formulae for the three diversity components used in the study. Alpha diversity is now described through species richness and the Shannon diversity index, beta diversity through Jaccard dissimilarity, and gamma diversity as the annual union of species recorded across islands. These additions improve the transparency and reproducibility of the analytical framework.}
+
+\noindent The revised text now includes the following formulae:
+
+\begin{equation}
+H' = -\sum_{i=1}^{S} p_i \ln p_i
+\end{equation}
+
+\begin{equation}
+\beta_J = 1 - \frac{a}{a + b + c}
+\end{equation}
+
+\begin{equation}
+\gamma_t = \left| S_{1,t} \cup S_{2,t} \cup \cdots \cup S_{n,t} \right|
+\end{equation}
+
+\subsection{Figures and tables}
+
+\reviewercomment{It is advisable to redraw Figure 1, specifying the names of the islands. In Table 1, the names of the levels must be in the English language. In Table 3, the names of the species must be followed by their binomials.}
+
+\authorresponse{We thank the reviewer for these suggestions. Figure 1 has been redrawn to improve readability and to include the names of the Canary Islands directly on the map. The labels in Figure 1 have also been translated into English. Table 1 has been revised so that the taxonomic levels are reported in English. The table listing the most frequently recorded macroalgal species has also been revised to ensure that species are presented using binomial names.}
+
+\subsection{Interpretation and conclusions}
+
+\subsection{Strengths, limitations, and comparison with similar studies}
+
+\reviewercomment{The authors clearly emphasized the strengths and the limitations of the study, but in the paragraph Discussions, it is necessary to insert a new subparagraph speaking about similar studies on spatiotemporal patterns of macroalgal diversity conducted in other oceanic coastal waters and in the Mediterranean Sea.}
+
+\authorresponse{We agree with the reviewer. A new subsection entitled ``Comparison with other oceanic and Mediterranean coastal systems'' has been added to the Discussion. This new subsection places our findings in a broader ecological context by comparing the spatial and temporal patterns observed in the Canary Islands with previous studies from oceanic and Mediterranean coastal systems. The new text discusses the role of warming, regional oceanography, nutrient availability, herbivory, eutrophication, and local disturbance regimes in shaping macroalgal community trajectories.}
+
+The added subsection includes the following text: \\
+
+\textbf{ 4.7. Comparison with other oceanic and Mediterranean coastal systems}\\ 
+% New subsection: 
+The spatial and temporal patterns observed in the Canary Islands are consistent with findings from other oceanic and Mediterranean coastal systems, where macroalgal assemblages respond to the combined influence of regional oceanography, warming, nutrient availability, and local environmental heterogeneity. Beyond the Canary archipelago, temperate oceanic coastal systems have shown marked climate-related changes in habitat-forming macroalgal assemblages, including range shift, reductions in canopy-forming taxa, increased dominance of warm-affinity or opportunistic species, and transitions towards altered community states (Vergés et al., 2016; Wernberg et al., 2016). These responses are especially evident in regions where warming interacts with herbivory pressure, productivity, and hydrodynamic conditions, suggesting that macroalgal community trajectories are often shaped by multiple concurrent drivers rather than by only temperature. Similar biodiversity reorganization patterns have also been documented in kelp forest ecosystems, where canopy loss has been associated with reductions in macroalgal $\beta$-diversity, increased habitat homogenization, and shifts towards turf-dominated assemblages (Piñeiro-Corbeira et al., 2024; Farrel et al. 2026). 
+
+Comparable patterns have also been reported from Mediterranean coastal ecosystems, where long-term monitoring has revealed temporal variability in macroalgal assemblages and sensitivity to warming, eutrophication, protection status, biotic interactions, and local disturbance regimes (Medrano et al., 2019; Rilov et al., 2020). The Mediterranean case is particularly relevant because it represents a strongly warming and environmentally heterogeneous marine region, where macroalgal communities are exposed simultaneously to climatic forcing and intense coastal pressures. These studies show that macroalgal assemblages can reorganize through context-dependent responses, with local ecological processes modulating broader climatic signals.
+
+Within this broader framework, previous studies from the Canary Islands have reported changes in subtidal macroalgal assemblages under warming scenarios, including the proliferation of ephemeral benthic algae and the decline of structurally complex temperate taxa (Sangil et al., 2012; Riera et al., 2015; Valdazo et al., 2017). The patterns reported here, therefore, align with evidence from both oceanic coastal waters and Mediterranean systems, supporting the interpretation that changes in macroalgal biodiversity emerge from interactions among broad-scale climatic forcing, regional oceanographic context, and local ecological pressures. In this sense, the Canary Islands represent a particularly informative transition-zone system, where the influence of the Canary Current upwelling, the east-west environmental gradient, and contemporary climate variability interact to structure macroalgal biodiversity across islands and decades. 
+
+\section{Response to Reviewer 2}
+
+\subsection{Objectives, rationale, and hypotheses}
+
+\reviewercomment{The introduction discusses anthropogenic climate change as a possible explanatory factor underlying temporal and spatial changes in macroalgal communities. However, the end of the introduction would benefit from a clearer statement of the hypotheses guiding the study.}
+
+\authorresponse{We agree with the reviewer. The final part of the Introduction has been revised to include explicit hypotheses. We now state that macroalgal diversity was expected to be spatially structured along the east-west environmental gradient of the archipelago, that temporal changes in diversity were expected to be associated with long-term variability in physical and biogeochemical drivers linked to contemporary anthropogenic climate change, and that diversity-environment relationships were expected to be non-linear and scale-dependent.}
+
+\subsection{Replicability and reproducibility}
+
+\reviewercomment{The methodology is well described and allows the study to be readily replicated in future research.}
+
+\authorresponse{We thank the reviewer for this positive evaluation. To further strengthen reproducibility, we added explicit mathematical definitions of the diversity metrics in the Methods section.}
+
+\subsection{Statistical analyses}
+
+\reviewercomment{The analyses presented in the manuscript are comprehensive, robust, and well conducted.}
+
+\authorresponse{We appreciate the reviewer's positive assessment. We have retained the statistical framework while improving the explanatory text around the main environmental variables identified by the models.}
+
+\subsection{Figures and tables}
+
+\reviewercomment{No additional figures or tables are required. However, the following figures and tables should be corrected: Figure 1: Translate all labels into English. Table 1: Translate the table labels into English. Figure 2: Remove the grey background from the figure. Figure 3: Remove the grey background from the figure. Figure 5: Translate the figure title into English.}
+
+\authorresponse{We thank the reviewer for these specific recommendations. We have revised the figures and tables accordingly. Figure 1 has been redrawn, and all labels have been translated into English. Table 1 has been revised so that all table labels are in English. The grey backgrounds have been removed from Figures 2 and 3 to improve visual clarity and journal presentation quality. The title of Figure 5 has been translated into English.}
+
+\subsection{Discussion: temporal variability and climate change}
+
+\reviewercomment{Although it is understood that an observational study cannot establish causality, the manuscript should more explicitly discuss how the observed temporal changes may relate to climate change. A sentence clarifying this relationship would strengthen the discussion.}
+
+\authorresponse{We agree with the reviewer. The Discussion section has been revised to more explicitly connect the observed temporal diversity changes with anthropogenic climate change as a potential background driver. We added text clarifying that the decline in richness observed in recent decades, particularly in western islands, coincided with progressive changes in thermal and biogeochemical conditions. We also maintained the caution that the observational nature of the data precludes direct causal attribution.}
+
+\subsection{Discussion: main environmental drivers}
+
+\reviewercomment{While the authors correctly state that there is no single dominant driver explaining the diversity metrics, it would improve the readability of the discussion to briefly summarize or list the most important environmental drivers identified in the analyses.}
+
+\authorresponse{We agree with the reviewer. The Discussion subsection on diversity-environment associations has been revised to summarize the main environmental correlates identified by the analyses explicitly. The revised text now mentions temperature-related variables, hydrodynamic indicators, sea level anomaly, dissolved oxygen, chlorophyll-a concentration, nutrient proxies such as phosphate and silicate, net primary production, and surface partial pressure of CO$_2$ as the main variables associated with macroalgal diversity metrics.}
+
+\subsection{Conclusion: climate change framing}
+
+\reviewercomment{The authors refer to anthropogenic climate change as a key factor for understanding the temporal and spatial changes observed in the macroalgal communities of the Canary Islands archipelago. However, the conclusion may be overly cautious in this regard. Although observational studies have limitations and do not allow causal inference, the manuscript should make a more explicit reference to climate change as a potential driver underlying the reported patterns.}
+
+\authorresponse{We agree with the reviewer. The Conclusion has been revised to include a more explicit reference to anthropogenic climate change as a potential background driver contributing to the observed reorganization of macroalgal communities in the Canary Islands. We retained the necessary caution regarding causal inference, but the revised conclusion now more clearly states that the temporal correspondence between diversity changes and environmental trends is consistent with climate-related shifts reported in other marine ecosystems.}
+
+\subsection{Introduction: anthropogenic climate change}
+
+\reviewercomment{The final part of the introduction could present one or more clearer hypotheses regarding the expected patterns or outcomes of the study. In addition, anthropogenic climate change is not explicitly mentioned and should be incorporated into the framing of the study.}
+
+\authorresponse{We agree with the reviewer. The Introduction has been revised to explicitly frame the study in relation to anthropogenic climate change. The opening paragraph describes how anthropogenic climate change is altering marine environments through increases in sea surface temperature, modifications of circulation patterns, and changes in water column stratification. The final part of the Introduction has also been expanded to include explicit hypotheses linking diversity patterns to the east-west environmental gradient, long-term physical and biogeochemical variability, and scale-dependent diversity-environment relationships.}
+
+\subsection{Overall assessment}
+
+\reviewercomment{The present study analyzes the occurrence of macroalgae across the Canary Islands archipelago over the last three decades. The authors examine not only temporal variability but also spatial variation, using alpha, beta, and gamma diversity metrics combined with physical and biogeochemical explanatory variables. The authors report fluctuations in macroalgal diversity throughout the last three decades, including a decline during the most recent period, and also identify marked differences along the east-west axis of the archipelago. This work is highly relevant in the context of the ongoing global climate crisis driven by anthropogenic climate change. The manuscript is well written, and the statistical analyses are appropriate and robust. Although the study has strong potential for publication, I have the following minor comments and suggestions.}
+
+\authorresponse{We sincerely thank the reviewer for this positive and constructive assessment. We have addressed all minor comments and suggestions in the revised manuscript. In particular, we clarified the hypotheses, incorporated anthropogenic climate change more explicitly into the framing and interpretation of the study, summarized the main environmental variables identified by the analyses, revised the conclusion, and corrected the requested figures and tables.}
+
+\section{Closing statement}
+
+\noindent We again thank the editor and both reviewers for their constructive comments. We believe that the revised manuscript is clearer, more reproducible, and better contextualized within the broader literature on macroalgal diversity responses to environmental variability and climate change.
+
+\vspace{0.5cm}
+\noindent Sincerely,\\[0.2cm]
+\noindent Eros Fernando Geppi, Daniel Gonzalez-Aragon, and Rodrigo Riera
+
+\end{document}

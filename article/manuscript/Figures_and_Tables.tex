@@ -1,0 +1,407 @@
+%\documentclass[a4paper,fleqn,longmktitle]{cas-sc}
+\documentclass[a4paper,fleqn]{cas-sc}
+\usepackage{siunitx}
+%\usepackage[numbers]{natbib}
+\usepackage{natbib}
+\usepackage{placeins}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{makecell}
+\usepackage[T1]{fontenc}
+\usepackage{parskip}
+\usepackage{amsmath}
+%\usepackage[spanish]{babel}
+%\selectlanguage{spanish}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{lineno}
+
+%%%Author definitions
+\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
+\tsc{WGM}
+\tsc{QE}
+\tsc{EP}
+\tsc{PMS}
+\tsc{BEC}
+\tsc{DE}
+
+\begin{document}
+
+\section{Tables and figures}
+
+% Las que creo que deberían ir como anexo:
+% Figure 4. Informativa pero densa; apoya interpretación, no el mensaje central.
+% Table 2. Necesaria pero no se le da tanta importancia en el texto.
+% Table 3. Es descriptiva, pero no tan no esencial para los objetivos.
+% Table 5. Demasiado técnica y extensa.
+% Tables 7–10. lo que comentamos ayer, mucha sobrecarga técnica y puede hacer que el reviewer se fatigue.
+% Tables 12–1.  Fundamentales para reproducibilidad, no para lectura principal.
+% Table 14. Técnica, pero puede citarse desde el texto principal.
+
+%Anexos (Supplementary Material):
+%Tabla 11 (PCA Summary) y Tabla 14 (PCA Loadings): El PCA es un paso intermedio para entender la colinealidad. Se suele resumir en el texto (ej: "Los primeros 4 componentes explicaron el 71% de la varianza") y dejar las tablas completas en el anexo.
+
+%Tabla 10 (GAM Visualization subset): Si ya tienes el modelo regional (Tablas 12 y 13), un subset de visualización es redundante para el cuerpo principal.
+
+%Tabla 2 (Records per year): Es demasiado larga y poco informativa para el lector general. Un gráfico de barras (si no lo tienes) es mejor, o simplemente dejarla en el anexo.
+
+% ME PARECE CORRECTO, TODAS ESAS TABLAS A SUPPL MAT!!
+
+
+
+\begin{table}[width=\linewidth,cols=2,pos=h]
+\caption{Most frequently recorded macroalgal species in the dataset. The table lists the fifteen species with the highest number of occurrence records, indicating their relative representation across islands and years.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LL @{}}
+\toprule
+Species & Records \\
+\midrule
+\textit{Gongolaria abiesmarina} & 3874 \\
+\textit{Dunaliella salina} & 1704 \\
+\textit{Gelidium canariense} & 1515 \\
+\textit{Lobophora variegata} & 1481 \\
+\textit{Caulerpa prolifera} & 1475 \\
+\textit{Alsidium corallinum} & 1341 \\
+\textit{Padina pavonica} & 1334 \\
+\textit{Fucus spiralis} & 1332 \\
+\textit{Caulerpa racemosa} & 1258 \\
+\textit{Lophocladia trichoclados} & 1168 \\
+\textit{Halopteris scoparia} & 1112 \\
+\textit{Caulerpa webbiana} & 1088 \\
+\textit{Jania pedunculata} & 1061 \\
+\textit{Corallina ferreyrae} & 1056 \\
+\textit{Cystoseira compressa} & 1014 \\
+\bottomrule
+\end{tabular*}
+\label{tab:3}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=\linewidth,cols=5,pos=h]
+\caption{Summary of generalized additive models (GAMs) fitted to macroalgal species richness and Shannon diversity, including estimated degrees of freedom, test statistics, and p-values for each smooth term.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{F} & \textbf{p value} \\
+\midrule
+\multicolumn{5}{l}{\textbf{Richness}} \\
+s(SST\_mean)      & 2.82 & 9 & 0.32  & \textbf{0.00062} \\
+s(bottomT\_mean) & 5.41 & 9 & 1.76  & \textbf{0.00333} \\
+s(mlotst\_mean)   & 6.14 & 9 & 2.90  & \textbf{4.69e-05} \\
+s(so\_mean)       & 4.71 & 9 & 0.83  & 0.0866 \\
+s(thetao\_mean)   & 2.82 & 9 & 0.32  & \textbf{0.00062} \\
+s(uo\_mean)       & 8.78 & 9 & 2.81  & \textbf{0.00141} \\
+s(vo\_mean)       & 0.10 & 9 & 0.01  & 0.234 \\
+s(zos\_mean)      & 8.26 & 9 & 3.14  & \textbf{0.00016} \\
+s(chl\_mean)      & 5.83 & 9 & 2.84  & \textbf{1.06e-05} \\
+s(dissic\_mean)   & 3.26 & 9 & 0.57  & 0.124 \\
+s(fe\_mean)       & 3.46 & 9 & 0.96  & \textbf{0.0191} \\
+s(nppv\_mean)     & 5.26 & 9 & 3.07  & \textbf{3.42e-06} \\
+s(o2\_mean)       & 2.81 & 9 & 1.17  & \textbf{0.00245} \\
+s(ph\_mean)       & 7.43 & 9 & 3.77  & \textbf{1.30e-06} \\
+s(phyc\_mean)     & 4.62 & 9 & 1.31  & \textbf{0.0101} \\
+s(po4\_mean)      & 3.99 & 9 & 1.24  & \textbf{0.00840} \\
+s(si\_mean)       & 4.85 & 9 & 3.14  & \textbf{1.99e-06} \\
+s(spco2\_mean)    & 7.95 & 9 & 3.86  & \textbf{1.10e-06} \\
+s(zeu\_mean)      & 0.00 & 9 & 0.00  & 0.882 \\
+\midrule
+\multicolumn{5}{l}{\textbf{Shannon}} \\
+s(SST\_mean)      & 4.08 & 9 & 0.21  & \textbf{0.00239} \\
+s(bottomT\_mean) & 3.96 & 9 & 1.99  & \textbf{0.00029} \\
+s(mlotst\_mean)   & 5.18 & 9 & 1.66  & \textbf{0.00487} \\
+s(so\_mean)       & 0.00 & 9 & 0.00  & 0.811 \\
+s(thetao\_mean)   & 4.08 & 9 & 0.21  & \textbf{0.00239} \\
+s(uo\_mean)       & 0.18 & 9 & 0.04  & 0.168 \\
+s(vo\_mean)       & 0.00 & 9 & 0.00  & 0.373 \\
+s(zos\_mean)      & 7.81 & 9 & 2.13  & \textbf{0.00555} \\
+s(chl\_mean)      & 6.31 & 9 & 3.30  & \textbf{1.84e-06} \\
+s(dissic\_mean)   & 2.52 & 9 & 0.42  & 0.158 \\
+s(fe\_mean)       & 3.42 & 9 & 1.18  & \textbf{0.00699} \\
+s(nppv\_mean)     & 6.30 & 9 & 2.89  & \textbf{3.88e-05} \\
+s(o2\_mean)       & 7.69 & 9 & 5.09  & \textbf{<2e-16} \\
+s(ph\_mean)       & 5.25 & 9 & 1.89  & \textbf{0.00050} \\
+s(phyc\_mean)     & 2.79 & 9 & 0.90  & \textbf{0.0121} \\
+s(po4\_mean)      & 5.99 & 9 & 2.55  & \textbf{0.00022} \\
+s(si\_mean)       & 4.58 & 9 & 3.12  & \textbf{1.74e-06} \\
+s(spco2\_mean)    & 7.71 & 9 & 2.69  & \textbf{2.73e-05} \\
+s(zeu\_mean)      & 5.51 & 9 & 1.72  & \textbf{0.00375} \\
+\bottomrule
+\end{tabular*}
+\label{tab:7}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=\linewidth,cols=5,pos=h]
+\caption{Results of the generalized additive model fitted to macroalgal species richness using a Poisson error distribution. Estimated degrees of freedom, test statistics, and p-values are reported for each environmental predictor.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{Chi.sq} & \textbf{p value} \\
+\midrule
+s(SST\_mean)      & 4.50 & 9 & 0.004  & \textbf{$<$2e-16} \\
+s(bottomT\_mean) & 7.76 & 9 & 245.93 & \textbf{$<$2e-16} \\
+s(mlotst\_mean)   & 8.22 & 9 & 203.46 & \textbf{$<$2e-16} \\
+s(so\_mean)       & 8.41 & 9 & 76.22  & \textbf{$<$2e-16} \\
+s(thetao\_mean)   & 4.50 & 9 & 0.004  & \textbf{$<$2e-16} \\
+s(uo\_mean)       & 9.00 & 9 & 168.76 & \textbf{$<$2e-16} \\
+s(vo\_mean)       & 7.02 & 9 & 79.56  & \textbf{$<$2e-16} \\
+s(zos\_mean)      & 8.64 & 9 & 136.16 & \textbf{$<$2e-16} \\
+s(chl\_mean)      & 8.93 & 9 & 114.34 & \textbf{$<$2e-16} \\
+s(dissic\_mean)   & 8.84 & 9 & 120.80 & \textbf{$<$2e-16} \\
+s(fe\_mean)       & 8.87 & 9 & 103.57 & \textbf{$<$2e-16} \\
+s(nppv\_mean)     & 7.78 & 9 & 87.99  & \textbf{$<$2e-16} \\
+s(o2\_mean)       & 7.16 & 9 & 170.49 & \textbf{$<$2e-16} \\
+s(ph\_mean)       & 8.52 & 9 & 250.35 & \textbf{$<$2e-16} \\
+s(phyc\_mean)     & 9.00 & 9 & 196.73 & \textbf{$<$2e-16} \\
+s(po4\_mean)      & 8.83 & 9 & 110.62 & \textbf{$<$2e-16} \\
+s(si\_mean)       & 7.93 & 9 & 109.83 & \textbf{$<$2e-16} \\
+s(spco2\_mean)    & 9.00 & 9 & 294.07 & \textbf{$<$2e-16} \\
+s(zeu\_mean)      & 8.89 & 9 & 86.45  & \textbf{$<$2e-16} \\
+\bottomrule
+\end{tabular*}
+\label{tab:8}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=\linewidth,cols=5,pos=h]
+\caption{Results of the generalized additive model fitted to Shannon diversity using a Gaussian error distribution. Estimated degrees of freedom, F-statistics, and p-values are reported for each smooth term.}
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{F} & \textbf{p value} \\
+\midrule
+s(SST\_mean)      & 4.08 & 9 & 0.21 & \textbf{0.0024} \\
+s(bottomT\_mean) & 3.96 & 9 & 1.99 & \textbf{0.00029} \\
+s(mlotst\_mean)   & 5.18 & 9 & 1.66 & \textbf{0.0049} \\
+s(so\_mean)       & 0.00 & 9 & 0.00 & 0.811 \\
+s(thetao\_mean)   & 4.08 & 9 & 0.21 & \textbf{0.0024} \\
+s(uo\_mean)       & 0.18 & 9 & 0.04 & 0.168 \\
+s(vo\_mean)       & 0.00 & 9 & 0.00 & 0.373 \\
+s(zos\_mean)      & 7.81 & 9 & 2.13 & \textbf{0.0055} \\
+s(chl\_mean)      & 6.31 & 9 & 3.30 & \textbf{1.8e-06} \\
+s(dissic\_mean)   & 2.52 & 9 & 0.42 & 0.158 \\
+s(fe\_mean)       & 3.42 & 9 & 1.18 & \textbf{0.0070} \\
+s(nppv\_mean)     & 6.30 & 9 & 2.89 & \textbf{3.9e-05} \\
+s(o2\_mean)       & 7.69 & 9 & 5.09 & \textbf{$<$2e-16} \\
+s(ph\_mean)       & 5.25 & 9 & 1.89 & \textbf{0.00050} \\
+s(phyc\_mean)     & 2.79 & 9 & 0.90 & \textbf{0.012} \\
+s(po4\_mean)      & 5.99 & 9 & 2.55 & \textbf{0.00022} \\
+s(si\_mean)       & 4.58 & 9 & 3.12 & \textbf{1.7e-06} \\
+s(spco2\_mean)    & 7.71 & 9 & 2.69 & \textbf{2.7e-05} \\
+s(zeu\_mean)      & 5.51 & 9 & 1.72 & \textbf{0.0038} \\
+\bottomrule
+\end{tabular*}
+\label{tab:9}
+\end{table}
+\FloatBarrier
+
+
+\section{Supplementary material}
+
+
+\begin{table}
+    \centering
+    \caption{Spectral and spatial resolution specifications for Sentinel-2 and Landsat 8 sensors used for ancillary remote-sensing analyses..}
+    \small
+    \begin{tabular}{cc|cc}
+    \hline
+        \multicolumn{2}{ c }{\textbf{Sentinel-2 (5-day revisit)}}  & \multicolumn{2}{ c } {\textbf{Landsat 8 (16-day revisit) }}  \\ \hline
+        Band & Wavelength (nm) / spatial resolution (m) & Band & Wavelength (nm) / spatial resolution (m) \\  \hline
+        1 & 443/60 & 1 & 443/30 \\ 
+        2 & 490/10 & 2 & 483/30 \\ 
+        3 & 560/10 & 3 & 561/30 \\ 
+        4 & 665/10 & 4 & 655/30 \\ 
+        5 & 704/20 & 5 & 865/30 \\ 
+        6 & 740/20 & 8 & 590/15 \\ 
+        7 & 783/20 & ~ & ~ \\ 
+        8 & 842/10 & ~ & ~ \\ 
+        8A & 865/20 \\ \hline
+    \end{tabular}
+    \label{Fig:SentinelLandsat}
+\end{table}
+\FloatBarrier
+
+\begin{table}
+    \centering
+    \caption{Spectral characteristics and spatial resolution of Sentinel-2 bands.}
+    \small
+    \begin{tabular}{c|c|c|c|c|c}
+    \hline
+        \textbf{Spectral region} & \textbf{Bands} & \textbf{$\lambda$$_{S2A}$ (nm)} & \textbf{$\lambda$$_{S2B}$ (nm)} & \textbf{Bandwidth $\lambda$$_{S2A - S2B}$ (nm)} & \textbf{Spatial resolution (m)} \\ \hline
+        Coastal aerosol & B1 & 442.7 & 442.2 & 21 – 21 & 60 \\ 
+        Blue & B2 & 492.4 & 492.1 & 66 – 66 & 10 \\ 
+        Green & B3 & 559.8 & 559 & 36 – 36 & 10 \\ 
+        Red & B4 & 664.6 & 664.9 & 31 – 31 & 10 \\ 
+        Red-edge1 & B5 & 704.1 & 703.8 & 15 – 16 & 20 \\ 
+        Red-edge2 & B6 & 740.5 & 739.1 & 15 – 15 & 20 \\ 
+        Red-edge3 & B7 & 782.8 & 779.7 & 20 – 20 & 20 \\ 
+        NIR & B8 & 832.8 & 832.9 & 106 – 106 & 10 \\ 
+        NIR narrow & B8A & 864.7 & 864 & 21 -22 & 20 \\ \hline
+
+    \end{tabular}
+    \label{Fig:Sentinelbands}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=.9\linewidth,cols=6,pos=h]
+\caption{Linear regression statistics of Giant kelp for NDREB index (Kelp canopy area) and tidal height}\label{S4}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLLLL@{} }
+\toprule
+Season & Threshold &Slope & Intercept & R$^{2}$ & F-Statistic & n\\
+\midrule
+Summer  & dynamic & -0.84 $\pm$ 0.31 & 3.5 $\pm$ 0.57 & 0.06 & 7.32 & 119 \\
+Autumn  & dynamic & -0.47 $\pm$ 0.24 & 2.53 $\pm$ 0.53 & 0.05 & 3.699 & 66 \\
+Winter  & dynamic & -0.54 $\pm$ 0.1 & 1.82 $\pm$ 0.23 & 0.36 & 27.81 & 52 \\
+Spring  & dynamic & -0.54 $\pm$ 0.23 & 2.56 $\pm$ 0.43 & 0.06 & 5.371 & 83 \\
+Total  & dynamic & -0.84 $\pm$ 0.13 & 3.19 $\pm$ 0.25 & 0.12 & 45.18 & 320 \\
+Summer  & >0 & -1.12 $\pm$ 0.33 & 3.58 $\pm$ 0.62 & 0.09 & 11.27 & 119 \\
+Autumn  & >0 & -0.48 $\pm$ 0.26 & 1.98 $\pm$ 0.57 & 0.05 & 3.518 & 66 \\
+Winter  & >0 & -0.31 $\pm$ 0.08 & 0.95 $\pm$ 0.17 & 0.25 & 16.82 & 52 \\
+Spring  & >0 & -0.54 $\pm$ 0.31 & 2.27 $\pm$ 0.57 & 0.04 & 3.056 & 83 \\
+Total  & >0 & -0.91 $\pm$ 0.14 & 2.92 $\pm$ 0.27 & 0.12 & 44.3 & 320 \\
+\bottomrule
+\end{tabular*}
+\label{Fig:NDREBTidal}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=.9\linewidth,cols=6,pos=h]
+\caption{Linear regression statistics of Giant kelp for NDREB index (kelp canopy area) and NDTI index (turbidity)}\label{S5}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLLLL@{} }
+\toprule
+Season & Threshold &Slope & Intercept & R$^{2}$ & F-Statistic & n\\
+\midrule
+Summer  & dynamic & -0.11 $\pm$ 0.55 & 1.93 $\pm$ 0.2 & 0.0003 & 0.04 & 119 \\
+Autumn  & dynamic & 1.38 $\pm$ 0.47 & 2.32 $\pm$ 0.29 & 0.12 & 8.58 & 66 \\
+Winter  & dynamic & -0.45 $\pm$ 0.32 & 0.4 $\pm$ 0.19 & 0.04 & 2.029 & 52 \\
+Spring  & dynamic & 0.23 $\pm$ 0.55 & 1.64 $\pm$ 0.17 & 0.002 & 0.18 & 83 \\
+Total  & dynamic & 0.93 $\pm$ 0.23 & 1.93 $\pm$ 0.11 & 0.05 & 15.55 & 320 \\
+Summer  & >0 & 1.32 $\pm$ 0.59 & 1.98 $\pm$ 0.22 & 0.04 & 5.07 & 119 \\
+Autumn  & >0 & 1.11 $\pm$ 0.52 & 1.58 $\pm$ 0.32 & 0.07 & 4.58 & 66 \\
+Winter  & >0 & -0.53 $\pm$ 0.21 & -0.01 $\pm$ 0.12 & 0.12 & 6.51 & 52 \\
+Spring  & >0 & 1.4 $\pm$ 0.7 & 1.68 $\pm$ 0.22 & 0.05 & 4.06 & 83 \\
+Total  & >0 & 1.58 $\pm$ 0.25 & 1.79 $\pm$ 0.11 & 0.11 & 40.22 & 320 \\\bottomrule
+\end{tabular*}
+\label{Fig:NDREBTurbidity}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=.9\linewidth,cols=4,pos=h]
+\caption{Results of the linear regression model between the seasonal time series area of \textit{M. pyrifera} (ha) and \textit{offshore} nutrients.}\label{nutrientoff}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLL@{} }
+\toprule
+Variable & F-Statistic & p-value & R$^{2}$ (Adj) \\
+\midrule
+Nitrate offshore & 0.176 & 0.686 & -0.101 \\
+Nitrite offshore & 0.059 & 0.814 & -0.117 \\
+Phosphate offshore & 0.497 & 0.501 & -0.059 \\
+N:P offshore & 1.383 & 0.273 & 0.041 \\
+Silicate offshore & 1.231 & 0.299 & 0.025 \\
+\bottomrule
+\end{tabular*}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=.9\linewidth,cols=5,pos=h]
+\caption{GAM fitted to visualization subset. Generalized additive model for species richness fitted to a reduced visualization subset of the data. Model performance metrics and smooth term statistics are reported.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{Chi.sq} & \textbf{p value} \\
+\midrule
+s(SST\_mean)      & 2.8000 & 9 &  3.302 & $< 2e$-16 \\
+s(bottomT\_mean) & 9.0000 & 9 & 54.722 & $< 2e$-16 \\
+s(mlotst\_mean)   & 9.0000 & 9 & 41.813 & $< 2e$-16 \\
+s(so\_mean)       & 6.0019 & 9 & 17.781 & 8.73e-05 \\
+s(thetao\_mean)   & 2.8000 & 9 &  3.302 & $< 2e$-16 \\
+s(uo\_mean)       & 8.7343 & 9 & 32.021 & $< 2e$-16 \\
+s(vo\_mean)       & 8.8313 & 9 & 39.450 & $< 2e$-16 \\
+s(zos\_mean)      & 8.6311 & 9 & 50.598 & $< 2e$-16 \\
+s(chl\_mean)      & 1.2697 & 9 &  4.539 & 0.00606  \\
+s(dissic\_mean)   & 0.9321 & 8 & 10.449 & 1.86e-05 \\
+s(fe\_mean)       & 8.9929 & 9 & 55.055 & $< 2e$-16 \\
+s(no3\_mean)      & 2.9999 & 3 &  4.619 & 0.06180  \\
+s(nppv\_mean)     & 6.2908 & 9 & 29.497 & $< 2e$-16 \\
+s(o2\_mean)       & 5.0230 & 9 & 20.658 & $< 2e$-16 \\
+s(ph\_mean)       & 5.8639 & 9 & 27.064 & $< 2e$-16 \\
+s(phyc\_mean)     & 7.1125 & 9 & 19.656 & 8.64e-05 \\
+s(po4\_mean)      & 5.5078 & 9 & 22.559 & 4.30e-07 \\
+s(si\_mean)       & 6.6748 & 9 & 45.417 & $< 2e$-16 \\
+s(spco2\_mean)    & 7.5839 & 9 & 22.537 & $< 2e$-16 \\
+s(zeu\_mean)      & 6.6533 & 9 & 39.218 & $< 2e$-16 \\
+\bottomrule
+\end{tabular*}
+\label{tab:10}
+\end{table}
+\FloatBarrier
+
+
+\begin{table}[width=.9\linewidth,cols=5,pos=h]
+\caption{Regional GAM for species richness. Generalized additive model results for species richness fitted at the regional scale. Estimated degrees of freedom, test statistics, and p-values are reported for each smooth term.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{Chi.sq} & \textbf{p-value} \\
+\midrule
+s(SST\_mean)      & 4.500 & 9 &   0.004 & $< 2e$-16 \\
+s(bottomT\_mean) & 7.760 & 9 & 245.930 & $< 2e$-16 \\
+s(mlotst\_mean)   & 8.224 & 9 & 203.457 & $< 2e$-16 \\
+s(so\_mean)       & 8.407 & 9 &  76.222 & $< 2e$-16 \\
+s(thetao\_mean)   & 4.500 & 9 &   0.004 & $< 2e$-16 \\
+s(uo\_mean)       & 8.998 & 9 & 168.761 & $< 2e$-16 \\
+s(vo\_mean)       & 7.020 & 9 &  79.559 & $< 2e$-16 \\
+s(zos\_mean)      & 8.636 & 9 & 136.156 & $< 2e$-16 \\
+s(chl\_mean)      & 8.934 & 9 & 114.340 & $< 2e$-16 \\
+s(dissic\_mean)   & 8.844 & 9 & 120.795 & $< 2e$-16 \\
+s(fe\_mean)       & 8.869 & 9 & 103.565 & $< 2e$-16 \\
+s(nppv\_mean)     & 7.777 & 9 &  87.989 & $< 2e$-16 \\
+s(o2\_mean)       & 7.157 & 9 & 170.490 & $< 2e$-16 \\
+s(ph\_mean)       & 8.515 & 9 & 250.347 & $< 2e$-16 \\
+s(phyc\_mean)     & 9.000 & 9 & 196.731 & $< 2e$-16 \\
+s(po4\_mean)      & 8.825 & 9 & 110.617 & $< 2e$-16 \\
+s(si\_mean)       & 7.927 & 9 & 109.826 & $< 2e$-16 \\
+s(spco2\_mean)    & 9.000 & 9 & 294.070 & $< 2e$-16 \\
+s(zeu\_mean)      & 8.893 & 9 &  86.448 & $< 2e$-16 \\
+\bottomrule
+\end{tabular*}
+\label{tab:12}
+\end{table}
+\FloatBarrier
+
+\begin{table}[width=.9\linewidth,cols=5,pos=h]
+\caption{Regional GAM for Shannon diversity:Generalized additive model results for Shannon diversity fitted at the regional scale, reporting smooth term statistics and overall model performance.}
+\small
+\begin{tabular*}{\tblwidth}{@{} LLLLL @{}}
+\toprule
+\textbf{Smooth term} & \textbf{edf} & \textbf{Ref.df} & \textbf{F} & \textbf{p-value} \\
+\midrule
+s(SST\_mean)      & 4.081 & 9 & 0.210 & 0.00239 ** \\
+s(bottomT\_mean) & 3.963 & 9 & 1.994 & 0.00029 *** \\
+s(mlotst\_mean)   & 5.177 & 9 & 1.661 & 0.00487 ** \\
+s(so\_mean)       & 0.000 & 9 & 0.000 & 0.81118 \\
+s(thetao\_mean)   & 4.081 & 9 & 0.210 & 0.00239 ** \\
+s(uo\_mean)       & 0.184 & 9 & 0.035 & 0.16844 \\
+s(vo\_mean)       & 0.000 & 9 & 0.000 & 0.37314 \\
+s(zos\_mean)      & 7.808 & 9 & 2.130 & 0.00555 ** \\
+s(chl\_mean)      & 6.310 & 9 & 3.302 & 1.8e-06 *** \\
+s(dissic\_mean)   & 2.516 & 9 & 0.416 & 0.15787 \\
+s(fe\_mean)       & 3.421 & 9 & 1.176 & 0.00699 ** \\
+s(nppv\_mean)     & 6.295 & 9 & 2.885 & 3.9e-05 *** \\
+s(o2\_mean)       & 7.692 & 9 & 5.087 & $< 2e$-16 *** \\
+s(ph\_mean)       & 5.254 & 9 & 1.892 & 0.00050 *** \\
+s(phyc\_mean)     & 2.792 & 9 & 0.895 & 0.01212 * \\
+s(po4\_mean)      & 5.991 & 9 & 2.545 & 0.00022 *** \\
+s(si\_mean)       & 4.576 & 9 & 3.120 & 1.7e-06 *** \\
+s(spco2\_mean)    & 7.709 & 9 & 2.687 & 2.7e-05 *** \\
+s(zeu\_mean)      & 5.507 & 9 & 1.716 & 0.00375 ** \\
+\bottomrule
+\end{tabular*}
+\label{tab:13}
+\end{table}
+\FloatBarrier
+
+
+\end{document}
+
