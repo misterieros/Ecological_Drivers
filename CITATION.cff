@@ -1,6 +1,7 @@
+```yaml
 cff-version: 1.2.0
-message: "If you use this repository, please cite the associated manuscript."
-title: "Ecological Drivers: macroalgal diversity across the Canary Islands"
+message: "If you use this repository, please cite the associated manuscript and repository."
+title: "Ecological Drivers: Macroalgal Diversity Across the Canary Islands"
 authors:
   - family-names: "Geppi"
     given-names: "Eros Fernando"
@@ -9,11 +10,33 @@ authors:
   - family-names: "Riera"
     given-names: "Rodrigo"
 repository-code: "https://github.com/misterieros/Ecological_Drivers"
-abstract: "Article-oriented workflow for analysing spatiotemporal patterns of macroalgal diversity across the Canary Islands."
+abstract: "Article-oriented workflow for analysing spatiotemporal patterns of macroalgal diversity across the Canary Islands by integrating long-term macroalgal occurrence records with physical and biogeochemical environmental variables. The broader research interest behind this repository was conceptually inspired by an earlier Master's Final Project developed by Eros Fernando Geppi."
 keywords:
   - macroalgae
   - Canary Islands
   - marine biodiversity
   - environmental gradients
+  - spatiotemporal patterns
+  - biodiversity change
   - generalized additive models
-license: "NOASSERTION"
+  - Copernicus Marine Environment Monitoring Service
+  - Master's Final Project
+license: "MIT"
+type: software
+version: "1.0.0"
+date-released: "2026-07-01"
+
+preferred-citation:
+  type: article
+  title: "Spatiotemporal patterns of macroalgal diversity across an environmentally heterogeneous oceanic archipelago"
+  authors:
+    - family-names: "Geppi"
+      given-names: "Eros Fernando"
+    - family-names: "Gonzalez-Aragon"
+      given-names: "Daniel"
+    - family-names: "Riera"
+      given-names: "Rodrigo"
+  journal: "Estuarine, Coastal and Shelf Science"
+  status: "manuscript"
+  year: 2026
+```
